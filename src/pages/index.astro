@@ -3,82 +3,131 @@ import Layout from "../layouts/Layout.astro";
 import Card from "../components/Card.astro";
 ---
 
-<Layout title="Welcome to Astro.">
+<Layout title="Hire Me">
   <main>
     <h1>
-      Welcome to <span class="text-gradient">thabnir's code emporium</span>
+      why you should <span class="text-gradient">hire me</span>
     </h1>
     <p class="instructions">
-      To get started, open the directory <code>src/pages</code> in your project.<br
-      />
-      <strong>Code Challenge:</strong> Tweak the "Welcome to Astro" message above.
+      i am a u1 student who goes to
+      <strong>mcgill university.</strong> i have <span class="de-emphasize"
+      ></span>
+      <span class="text-gradient strong">made side projects</span> and <span
+        class="text-gradient strong">taken computer science courses,</span
+      > and my goal is to <span class="text-gradient strong"
+        >somehow get a job this summmer.</span
+      >
     </p>
     <ul role="list" class="link-card-grid">
       <Card
-        href="https://docs.astro.build/"
-        title="Documentation"
-        body="Learn how Astro works and explore the official API docs."
+        href="https://github.com/thabnir/KTetris"
+        title="i can do kotlin"
+        body="I made this tetris clone. And other things. I started out with Java, so I know that too."
       />
       <Card
-        href="https://astro.build/integrations/"
-        title="Integrations"
-        body="Supercharge your project with new frameworks and libraries."
+        href="https://devpost.com/software/stock-bro-ai"
+        title="i also know python"
+        body="I'm not as good at it, but I made this data analysis website in Flask for a hackathon."
       />
       <Card
-        href="https://astro.build/themes/"
-        title="Themes"
-        body="Explore a galaxy of community-built starter themes."
+        href="https://github.com/thabnir/thabnir.github.io"
+        title="i made this website"
+        body="Isn't it cool? I made it using Astro, a new static site generator. Hover over things to see what they do."
       />
       <Card
-        href="https://astro.build/chat/"
-        title="Community"
-        body="Come say hi to our amazing Discord community. ❤️"
+        href=""
+        title="i get good grades"
+        body="I have a 3.93 GPA, and I was the top student in my high school class."
+      />
+      <Card
+        href=""
+        title="here's my resume"
+        body="Just kidding, this links to nothing. I don't have one yet."
+      />
+      <Card
+        href="https://www.linkedin.com/in/henry-lefebvre-b1897b22a/"
+        title="hire me"
+        body="This is my LinkedIn."
       />
     </ul>
+
+    <style>
+      main {
+        margin: auto;
+        padding: 1.5rem;
+        max-width: 60ch;
+      }
+      h1 {
+        font-size: 3rem;
+        font-weight: 800;
+        margin: 0;
+      }
+
+      .hidden-text {
+        display: none;
+      }
+
+      p:hover + .hidden-text {
+        display: block;
+      }
+
+      .text-gradient {
+        background-image: var(--accent-gradient);
+        -webkit-background-clip: text;
+        -webkit-text-fill-color: transparent;
+        background-size: 400%;
+        background-position: 0%;
+      }
+
+      .text-gradient:hover {
+        animation: gradient 2s ease;
+      }
+
+      @keyframes gradient {
+        0% {
+          background-position: 0%;
+        }
+        50% {
+          background-position: 100%;
+        }
+        100% {
+          background-position: 0%;
+        }
+      }
+
+      .text-gradient.strong {
+        font-weight: 800;
+      }
+
+      .de-emphasize {
+        color: darkgray;
+      }
+
+      .instructions {
+        line-height: 1.6;
+        margin: 1rem 0;
+        border: 1px solid rgba(var(--accent), 25%);
+        background-color: white;
+        padding: 1rem;
+        border-radius: 0.4rem;
+      }
+      .instructions code {
+        font-size: 0.875em;
+        font-weight: bold;
+        background: rgba(var(--accent), 12%);
+        color: rgb(var(--accent));
+        border-radius: 4px;
+        padding: 0.3em 0.45em;
+      }
+      .instructions strong {
+        color: rgb(var(--accent));
+      }
+      .link-card-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(24ch, 1fr));
+        gap: 1rem;
+        padding: 0;
+      }
+    </style>
   </main>
 </Layout>
-
-<style>
-  main {
-    margin: auto;
-    padding: 1.5rem;
-    max-width: 60ch;
-  }
-  h1 {
-    font-size: 3rem;
-    font-weight: 800;
-    margin: 0;
-  }
-  .text-gradient {
-    background-image: var(--accent-gradient);
-    -webkit-background-clip: text;
-    -webkit-text-fill-color: transparent;
-    background-size: 400%;
-    background-position: 0%;
-  }
-  .instructions {
-    line-height: 1.6;
-    margin: 1rem 0;
-    border: 1px solid rgba(var(--accent), 25%);
-    background-color: white;
-    padding: 1rem;
-    border-radius: 0.4rem;
-  }
-  .instructions code {
-    font-size: 0.875em;
-    font-weight: bold;
-    background: rgba(var(--accent), 12%);
-    color: rgb(var(--accent));
-    border-radius: 4px;
-    padding: 0.3em 0.45em;
-  }
-  .instructions strong {
-    color: rgb(var(--accent));
-  }
-  .link-card-grid {
-    display: grid;
-    grid-template-columns: repeat(auto-fit, minmax(24ch, 1fr));
-    gap: 1rem;
-    padding: 0;
-  }
-</style>
