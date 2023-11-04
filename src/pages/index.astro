@@ -9,45 +9,36 @@ import Card from "../components/Card.astro";
       <span class="text-gradient">Henry Lefebvre</span>
     </h1>
     <p class="instructions">
-      I am an Honours Computer Science student who goes to
-      <span class="text-gradient strong"
-        ><a href="https://www.mcgill.ca">McGill University.</a></span
-      >
-      I have a
-      <span class="text-gradient strong"
-        ><a href="https://github.com/thabnir">GitHub</a></span
-      > where I host my Java, Kotlin, Python, C, and C++ code.
+    Hey there! 👋 I'm an Honours Computer Science student at
+    <a href="https://www.mcgill.ca" class="text-gradient strong">McGill University</a>,
+    and I love making cool tech. Check out some of my favorite projects below!
     </p>
     <ul role="list" class="link-card-grid">
       <Card
-        href="https://github.com/thabnir/minimal-tetris"
-        title="minimal-tetris"
-        body="This minimalist tetris clone I made on the bus won $10. I wrote it in Kotlin with Swing for the GUI."
+        href="https://github.com/thabnir/apartmatch"
+        title="ApartMatch"
+        body="AI-powered Apartment-hunting website created with Flask. First Place at MAIS Hacks 2023."
       />
       <Card
         href="https://github.com/thabnir/stockbro.ai"
         title="stockbro.ai"
-        body="This fun AI stock market analysis app I made with Flask won Best Newbie Hack at McHacks 10."
+        body="Fun and informative AI stock advice site made with Flask. Best Newbie Hack at McHacks 10."
       />
       <Card
-        href="https://github.com/thabnir/thabnir.github.io"
-        title="This Website"
-        body="I made it using Astro. Just look at those hover effects!"
+        href="https://github.com/thabnir/minimal-tetris"
+        title="minimal-tetris"
+        body="Elegant desktop Tetris app. Recognized among Best Projects at McGill Projects Showcase."
       />
       <Card
-        href="https://www.shutterstock.com/image-photo/portrait-smiling-young-college-student-600w-1192615495.jpg"
-        title="My Grades"
-        body="A 3.93 GPA with loads of relevant CS and math courses."
+        href="https://github.com/thabnir/yt_txt"
+        title="yt_txt"
+        body="Practical Python CLI tool to transcribe YouTube audio with Whisper ASR."
       />
-      <Card
-        href="/henry-lefebvre-resume.pdf"
-        title="My Résumé"
-        body="In PDF form, no less."
-      />
+      <Card href="/henry-lefebvre-resume.pdf" title="Résumé" body="Download my résumé for more details." />
       <Card
         href="https://www.linkedin.com/in/henry-lefebvre/"
-        title="My LinkedIn"
-        body="The height of professionalism."
+        title="LinkedIn"
+        body="Connect with me on LinkedIn!"
       />
       <style>
         main {
@@ -74,22 +65,22 @@ import Card from "../components/Card.astro";
           -webkit-background-clip: text;
           -webkit-text-fill-color: transparent;
           background-size: 400%;
-          background-position: 0%;
+          background-position: -400%;
+          opacity: 0.7;
+          transition: opacity 0.3s;
         }
 
         .text-gradient:hover {
-          animation: gradient 2s ease;
+          animation: hov 0.3s;
+          opacity: 1;
         }
 
-        @keyframes gradient {
+        @keyframes hov {
           0% {
-            background-position: 0%;
-          }
-          50% {
-            background-position: 100%;
+            opacity: 0.7;
           }
           100% {
-            background-position: 0%;
+            opacity: 1;
           }
         }
 
