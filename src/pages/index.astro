@@ -9,9 +9,13 @@ import Card from "../components/Card.astro";
       <span class="text-gradient">Henry Lefebvre</span>
     </h1>
     <p class="instructions">
-    Hey there! 👋 I'm an Honours Computer Science student at
-    <a href="https://www.mcgill.ca" class="text-gradient strong">McGill University</a>,
-    and I love making cool tech. Check out some of my favorite projects below!
+      Hey there! 👋 I'm an Honours Computer Science student at
+      <a href="https://www.mcgill.ca" class="text-gradient strong"
+        >McGill University!</a
+      > You can check out some of my projects below or <a
+        href="/henry-lefebvre-resume.pdf"
+        class="text-gradient strong">read my resume</a
+      > for the gist.
     </p>
     <ul role="list" class="link-card-grid">
       <Card
@@ -20,9 +24,19 @@ import Card from "../components/Card.astro";
         body="AI-powered Apartment-hunting website created with Flask. First Place at MAIS Hacks 2023."
       />
       <Card
+        href="https://github.com/thabnir/langsonic"
+        title="LangSonic"
+        body="Convolutional Neural Network designed for rapid multilingual speech classification."
+      />
+      <Card
         href="https://github.com/thabnir/stockbro.ai"
         title="stockbro.ai"
         body="Fun and informative AI stock advice site made with Flask. Best Newbie Hack at McHacks 10."
+      />
+      <Card
+        href="https://github.com/thabnir/cookcheap"
+        title="CookCheap"
+        body="AI-powered grocery-hunting Flask website created for McGill CodeJam 13."
       />
       <Card
         href="https://github.com/thabnir/minimal-tetris"
@@ -34,7 +48,11 @@ import Card from "../components/Card.astro";
         title="yt_txt"
         body="Practical Python CLI tool to transcribe YouTube audio with Whisper ASR."
       />
-      <Card href="/henry-lefebvre-resume.pdf" title="Résumé" body="Download my résumé for more details." />
+      <Card
+        href="/henry-lefebvre-resume.pdf"
+        title="Résumé"
+        body="Download my résumé for more details. (In beautiful LaTeX!)"
+      />
       <Card
         href="https://www.linkedin.com/in/henry-lefebvre/"
         title="LinkedIn"
