@@ -25,4 +25,5 @@ pnpm-debug.log*
 
 # .idea
 .idea/
+.vscode/
 defaultreadme.md
