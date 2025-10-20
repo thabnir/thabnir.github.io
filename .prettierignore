@@ -1,0 +1,10 @@
+assets/
+.vscode/
+node_modules/
+dist/
+build/
+.git/
+.astro/
+.env/
+.cache/
+.DS_Store
