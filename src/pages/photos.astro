@@ -1,0 +1,43 @@
+---
+import BaseHead from '../components/BaseHead.astro';
+import Header from '../components/Header.astro';
+import Footer from '../components/Footer.astro';
+import PageHeader from '../components/PageHeader.astro';
+import PhotoGallery from '../components/PhotoGallery.astro';
+import Lightbox from '../components/Lightbox.astro';
+import waveImage from '../assets/images/wave.jpg';
+
+// eager: true to load all images at build time (static)
+const imageModules = import.meta.glob('../assets/images/*.{jpg,jpeg,png,gif,webp}', { eager: true });
+const images = Object.values(imageModules);
+
+const title = "My Favorite Photos";
+const description = "A collection of my favorite photography moments";
+---
+
+<html lang="en">
+	<head>
+		<BaseHead title={title} description={description} />
+		<style>
+			main {
+				width: 100%;
+				max-width: 100%;
+				margin: 0;
+				padding: 0;
+			}
+		</style>
+	</head>
+	<body>
+		<Header />
+		<main>
+			<PageHeader 
+				title={title} 
+				description={description} 
+				backgroundImage={waveImage} 
+			/>
+			<PhotoGallery images={images} />
+			<Lightbox />
+		</main>
+		<!-- <Footer /> -->
+	</body>
+</html>
