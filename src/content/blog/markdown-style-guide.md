@@ -1,8 +1,8 @@
 ---
-title: 'Markdown Style Guide'
-description: 'Here is a sample of some basic Markdown syntax that can be used when writing Markdown content in Astro.'
-pubDate: 'Jun 19 2024'
-heroImage: '../../assets/blog-placeholder-1.jpg'
+title: "Markdown Style Guide"
+description: "Here is a sample of some basic Markdown syntax that can be used when writing Markdown content in Astro."
+pubDate: "Jun 19 2024"
+heroImage: "../../assets/blog-placeholder-1.jpg"
 ---
 
 Here is a sample of some basic Markdown syntax that can be used when writing Markdown content in Astro.
@@ -202,6 +202,18 @@ Most <mark>salamanders</mark> are nocturnal, and hunt for insects, worms, and ot
 ```
 
 ### Output
+
+What if i wanted to do some math?
+
+$$
+E = mc^2
+$$
+
+A fancy integral:
+
+$$
+\int_a^b f(x) \,dx = F(b) - F(a)
+$$
 
 <abbr title="Graphics Interchange Format">GIF</abbr> is a bitmap image format.
 
