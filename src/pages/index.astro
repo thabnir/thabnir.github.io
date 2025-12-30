@@ -1,10 +1,10 @@
 ---
 import { Image } from "astro:assets";
 import BaseHead from "../components/BaseHead.astro";
-import Footer from "../components/Footer.astro";
 import Header from "../components/Header.astro";
 import { SITE_DESCRIPTION, SITE_TITLE } from "../consts";
-import blogImage from "../assets/blog-placeholder-1.jpg";
+import { Icon } from "astro-icon/components";
+const props = Astro.props;
 ---
 
 <!doctype html>
@@ -15,13 +15,25 @@ import blogImage from "../assets/blog-placeholder-1.jpg";
   <body>
     <Header />
     <main>
-		<h1>Henry Lefebvre</h1>
-		<p>Not to be confused with <i>Henri Lefebvre</i>, the French Marxist philosopher. I'm a software developer, photographer, and amateur boulderer.</p>
-		<p>He's dead.</p>
-
-		<h2>Hiring</h2>
-		<p>I'm currently open to new job opportunities! If you're interested in working with me, please <a href="/about#contact">get in touch</a>.</p>
+      <h2>Hi, I'm a Software Developer</h2>
+      <p>
+        My name is Henry Lefebvre.<br />
+        Don't confuse me with <i><a
+          href="https://en.wikipedia.org/wiki/Henri_Lefebvre" class="
+          hover-picture">Henri Lefebvre</a></i>, the Marxist philosopher.<br />
+        He's old, dead, and doesn't know <a href="/blog/typescript">the first thing about Typescript.</a><br />
+        I'm young, alive, and seeking employment after graduation.<br />
+        To get in touch, <a href="mailto:henrylefeb@gmail.com">email me</a> or <a
+          href="https://www.linkedin.com/in/henry-lefebvre/"
+          >message me on LinkedIn.</a
+        >
+      </p>
+      <h4>
+        <a href="/henry-lefebvre-resume.pdf" class="download-link">
+          <Icon name="material-symbols:download" />
+          <span>Download Resume</span>
+        </a>
+      </h4>
     </main>
-    <!-- <Footer /> -->
   </body>
 </html>

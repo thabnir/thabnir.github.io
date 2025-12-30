@@ -1,0 +1,1540 @@
+---
+export interface Props {
+  id?: string;
+  class?: string;
+  // Boid count
+  nBoids?: number;
+  // Behavior
+  visualRange?: number;
+  minDistance?: number;
+  maxSpeed?: number;
+  minSpeed?: number;
+  maxTurnRate?: number;
+  fieldOfView?: number;
+  alignmentFactor?: number;
+  cohesionFactor?: number;
+  separationFactor?: number;
+  wallMargin?: number;
+  wallTurnFactor?: number;
+  // Cursor magnetism
+  cursorMagnetism?: number;
+  cursorMagnetismRange?: number;
+  // Rendering
+  boidSize?: number;
+  trailLength?: number;
+  drawTrail?: boolean;
+  showVision?: boolean;
+  visionBoidIndex?: number;
+  // Camera
+  followBoid?: boolean;
+  zoomLevel?: number;
+  cameraSmoothing?: number;
+  zoomSmoothing?: number;
+  // Colors
+  colorMode?: "uniform" | "random" | "velocity" | "flock";
+  uniformHue?: number;
+  colorBlendSpeed?: number;
+  // Performance
+  fpsLimit?: number;
+  enableFpsLimit?: boolean;
+  showStats?: boolean;
+  // Control panel
+  showControls?: boolean;
+  // Scroll automation
+  enableScrollControl?: boolean;
+}
+
+const {
+  id = "boids-canvas",
+  class: className = "",
+  nBoids = 500,
+  visualRange = 50,
+  minDistance = 10,
+  maxSpeed = 3.5,
+  minSpeed = 1.0,
+  maxTurnRate = 0.07,
+  fieldOfView = 250,
+  alignmentFactor = 0.003,
+  cohesionFactor = 0.0005,
+  separationFactor = 0.0035,
+  wallMargin = 30,
+  wallTurnFactor = 0.45,
+  cursorMagnetism = 0,
+  cursorMagnetismRange = 200,
+  boidSize = 10,
+  trailLength = 40,
+  drawTrail = true,
+  showVision = false,
+  visionBoidIndex = 0,
+  followBoid = false,
+  zoomLevel = 1.0,
+  cameraSmoothing = 0.1,
+  zoomSmoothing = 0.05,
+  colorMode = "velocity",
+  uniformHue = 220,
+  colorBlendSpeed = 0.05,
+  fpsLimit = 60,
+  enableFpsLimit = true,
+  showStats = false,
+  showControls = false,
+  enableScrollControl = false,
+} = Astro.props;
+
+const containerId = `${id}-container`;
+const canvasId = id;
+const controlsId = `${id}-controls`;
+const toggleBtnId = `${id}-toggle`;
+---
+
+<div id={containerId} class:list={["boids-container", className]} data-boids-config={JSON.stringify({
+  nBoids,
+  visualRange,
+  minDistance,
+  maxSpeed,
+  minSpeed,
+  maxTurnRate,
+  fieldOfView,
+  alignmentFactor,
+  cohesionFactor,
+  separationFactor,
+  wallMargin,
+  wallTurnFactor,
+  cursorMagnetism,
+  cursorMagnetismRange,
+  boidSize,
+  trailLength,
+  drawTrail,
+  showVision,
+  visionBoidIndex,
+  followBoid,
+  zoomLevel,
+  cameraSmoothing,
+  zoomSmoothing,
+  colorMode,
+  uniformHue,
+  colorBlendSpeed,
+  fpsLimit,
+  enableFpsLimit,
+  showStats,
+  showControls,
+  enableScrollControl,
+})}>
+  <canvas id={canvasId}></canvas>
+  
+  {showControls && (
+    <>
+      <button id={toggleBtnId} class="boids-toggle-btn">&#9776;</button>
+      <div id={controlsId} class="boids-controls collapsed">
+        <h3>Boids Controls</h3>
+
+        <div class="control-section">
+          <h4>Simulation</h4>
+          <div class="control-row">
+            <button class="pause-btn">&#10074;&#10074; Pause</button>
+            <button class="reset-btn">&#8635; Reset</button>
+          </div>
+          <label>
+            Boid Count: <span class="boid-count-value">{nBoids}</span>
+            <input type="range" class="boid-count" min="10" max="3000" step="10" value={nBoids} />
+            <small>(reset required)</small>
+          </label>
+        </div>
+
+        <div class="control-section">
+          <h4>Behavior</h4>
+          <label>
+            Visual Range: <span class="visual-range-value">{visualRange}</span>
+            <input type="range" class="visual-range" min="10" max="200" step="5" value={visualRange} />
+          </label>
+          <label>
+            Min Distance: <span class="min-distance-value">{minDistance}</span>
+            <input type="range" class="min-distance" min="5" max="100" step="1" value={minDistance} />
+          </label>
+          <label>
+            Max Speed: <span class="max-speed-value">{maxSpeed}</span>
+            <input type="range" class="max-speed" min="1" max="5" step="0.1" value={maxSpeed} />
+          </label>
+          <label>
+            Alignment: <span class="alignment-value">{alignmentFactor}</span>
+            <input type="range" class="alignment" min="0" max="0.05" step="0.001" value={alignmentFactor} />
+          </label>
+          <label>
+            Cohesion: <span class="cohesion-value">{cohesionFactor}</span>
+            <input type="range" class="cohesion" min="0" max="0.05" step="0.0005" value={cohesionFactor} />
+          </label>
+          <label>
+            Separation: <span class="separation-value">{separationFactor}</span>
+            <input type="range" class="separation" min="0" max="0.05" step="0.001" value={separationFactor} />
+          </label>
+          <label>
+            Wall Margin: <span class="wall-margin-value">{wallMargin}</span>
+            <input type="range" class="wall-margin" min="20" max="300" step="10" value={wallMargin} />
+          </label>
+          <label>
+            Wall Turn Factor: <span class="wall-turn-value">{wallTurnFactor}</span>
+            <input type="range" class="wall-turn" min="0.05" max="1" step="0.05" value={wallTurnFactor} />
+          </label>
+        </div>
+
+        <div class="control-section">
+          <h4>Steering</h4>
+          <label>
+            Min Speed: <span class="min-speed-value">{minSpeed}</span>
+            <input type="range" class="min-speed" min="0" max="5" step="0.1" value={minSpeed} />
+          </label>
+          <label>
+            Max Turn Rate: <span class="max-turn-rate-value">{maxTurnRate}</span>
+            <input type="range" class="max-turn-rate" min="0.01" max="1.0" step="0.01" value={maxTurnRate} />
+            <small>Radians per frame</small>
+          </label>
+          <label>
+            Field of View: <span class="fov-value">{fieldOfView}</span>&#176;
+            <input type="range" class="fov" min="30" max="360" step="10" value={fieldOfView} />
+          </label>
+        </div>
+
+        <div class="control-section">
+          <h4>Cursor Magnetism</h4>
+          <label>
+            Strength: <span class="cursor-magnetism-value">{cursorMagnetism}</span>
+            <input type="range" class="cursor-magnetism" min="-0.5" max="0.5" step="0.01" value={cursorMagnetism} />
+            <small>Negative = repel</small>
+          </label>
+          <label>
+            Range: <span class="magnetism-range-value">{cursorMagnetismRange}</span>
+            <input type="range" class="magnetism-range" min="50" max="500" step="10" value={cursorMagnetismRange} />
+          </label>
+        </div>
+
+        <div class="control-section">
+          <h4>Colors</h4>
+          <label>
+            Color Mode:
+            <select class="color-mode">
+              <option value="uniform" selected={colorMode === "uniform"}>Uniform</option>
+              <option value="random" selected={colorMode === "random"}>Random</option>
+              <option value="velocity" selected={colorMode === "velocity"}>Velocity</option>
+              <option value="flock" selected={colorMode === "flock"}>Flock Blend</option>
+            </select>
+          </label>
+          <label class="uniform-hue-control" style={colorMode === "uniform" ? "" : "display: none;"}>
+            Uniform Hue: <span class="uniform-hue-value">{uniformHue}</span>
+            <input type="range" class="uniform-hue" min="0" max="360" step="1" value={uniformHue} />
+          </label>
+          <label class="blend-speed-control" style={colorMode === "flock" ? "" : "display: none;"}>
+            Blend Speed: <span class="color-blend-speed-value">{colorBlendSpeed}</span>
+            <input type="range" class="color-blend-speed" min="0.001" max="0.2" step="0.001" value={colorBlendSpeed} />
+          </label>
+        </div>
+
+        <div class="control-section">
+          <h4>Rendering</h4>
+          <label>
+            Boid Size: <span class="boid-size-value">{boidSize}</span>
+            <input type="range" class="boid-size" min="3" max="30" step="1" value={boidSize} />
+          </label>
+          <label>
+            Trail Length: <span class="trail-length-value">{trailLength}</span>
+            <input type="range" class="trail-length" min="0" max="100" step="5" value={trailLength} />
+          </label>
+          <label class="checkbox-label">
+            <input type="checkbox" class="draw-trail" checked={drawTrail} />
+            Draw Trail
+          </label>
+          <label class="checkbox-label">
+            <input type="checkbox" class="show-vision" checked={showVision} />
+            Show Boid Vision
+          </label>
+          <label>
+            Vision Boid Index: <span class="vision-boid-value">{visionBoidIndex}</span>
+            <input type="range" class="vision-boid" min="0" max={nBoids - 1} step="1" value={visionBoidIndex} />
+          </label>
+        </div>
+
+        <div class="control-section">
+          <h4>Camera</h4>
+          <label class="checkbox-label">
+            <input type="checkbox" class="follow-boid" checked={followBoid} />
+            Follow Selected Boid
+          </label>
+          <label>
+            Zoom Level: <span class="zoom-level-value">{zoomLevel}</span>
+            <input type="range" class="zoom-level" min="0.5" max="5" step="0.1" value={zoomLevel} />
+          </label>
+          <label>
+            Camera Smoothing: <span class="camera-smoothing-value">{cameraSmoothing}</span>
+            <input type="range" class="camera-smoothing" min="0.01" max="1.0" step="0.01" value={cameraSmoothing} />
+          </label>
+        </div>
+
+        <div class="control-section">
+          <h4>Performance</h4>
+          <label class="checkbox-label">
+            <input type="checkbox" class="show-stats" checked={showStats} />
+            Show Stats
+          </label>
+          <label class="checkbox-label">
+            <input type="checkbox" class="enable-fps-limit" checked={enableFpsLimit} />
+            Enable FPS Limit
+          </label>
+          <label>
+            FPS Limit: <span class="fps-limit-value">{fpsLimit}</span>
+            <input type="range" class="fps-limit" min="10" max="144" step="1" value={fpsLimit} />
+          </label>
+        </div>
+      </div>
+    </>
+  )}
+</div>
+
+<style>
+  .boids-container {
+    position: relative;
+    width: 100%;
+    height: 100%;
+    overflow: hidden;
+  }
+
+  .boids-container canvas {
+    display: block;
+    width: 100%;
+    height: 100%;
+  }
+
+  .boids-toggle-btn {
+    position: absolute;
+    top: 16px;
+    right: 16px;
+    z-index: 1001;
+    width: 36px;
+    height: 36px;
+    border: 1px solid var(--accent, rgba(255, 255, 255, 0.2));
+    border-radius: 0;
+    background: rgba(0, 0, 0, 0.8);
+    color: #fff;
+    font-size: 16px;
+    cursor: pointer;
+    transition: all 0.15s ease;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+  }
+
+  .boids-toggle-btn:hover {
+    background: var(--accent, rgba(255, 255, 255, 0.1));
+    border-color: var(--accent, rgba(255, 255, 255, 0.4));
+    color: #fff;
+  }
+
+  .boids-controls {
+    position: absolute;
+    top: 16px;
+    right: 60px;
+    width: 320px;
+    max-height: calc(100% - 32px);
+    overflow-y: auto;
+    overflow-x: hidden;
+    background: rgba(0, 0, 0, 0.9);
+    border: 1px solid var(--accent, rgba(255, 255, 255, 0.15));
+    border-radius: 0;
+    padding: 24px;
+    box-sizing: border-box;
+    z-index: 1000;
+    color: #fff;
+    font-size: 12px;
+    font-weight: 400;
+    letter-spacing: 0.02em;
+    line-height: 1.5;
+    transition: transform 0.15s ease, opacity 0.15s ease;
+  }
+
+  .boids-controls.collapsed {
+    transform: translateX(400px);
+    opacity: 0;
+    pointer-events: none;
+  }
+
+  .boids-controls h3 {
+    margin: 0 0 24px 0;
+    font-size: 11px;
+    font-weight: 700;
+    color: var(--accent, #fff);
+    text-transform: uppercase;
+    letter-spacing: 0.15em;
+    border-bottom: 2px solid var(--accent, #fff);
+    padding-bottom: 12px;
+  }
+
+  .control-section {
+    margin-bottom: 24px;
+    padding-bottom: 20px;
+    border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+  }
+
+  .control-section:last-child {
+    border-bottom: none;
+    margin-bottom: 0;
+    padding-bottom: 0;
+  }
+
+  .control-section h4 {
+    margin: 0 0 16px 0;
+    font-size: 10px;
+    font-weight: 700;
+    text-transform: uppercase;
+    color: var(--accent, rgba(255, 255, 255, 0.5));
+    letter-spacing: 0.12em;
+  }
+
+  .boids-controls label {
+    display: block;
+    margin-bottom: 16px;
+    font-size: 12px;
+    color: rgba(255, 255, 255, 0.9);
+  }
+
+  .boids-controls label span {
+    float: right;
+    font-variant-numeric: tabular-nums;
+    color: rgba(255, 255, 255, 0.6);
+  }
+
+  .boids-controls input[type="range"] {
+    -webkit-appearance: none;
+    appearance: none;
+    width: 100%;
+    height: 1px;
+    margin: 12px 0;
+    padding: 0;
+    background: rgba(255, 255, 255, 0.3);
+    border: none;
+    border-radius: 0;
+    outline: none;
+    cursor: pointer;
+    display: block;
+    box-sizing: border-box;
+  }
+
+  .boids-controls input[type="range"]::-webkit-slider-thumb {
+    -webkit-appearance: none;
+    appearance: none;
+    width: 8px;
+    height: 8px;
+    background: var(--accent, #fff);
+    border-radius: 0;
+    cursor: pointer;
+    margin-top: -3.5px;
+    transition: transform 0.1s ease;
+  }
+
+  .boids-controls input[type="range"]::-moz-range-thumb {
+    width: 8px;
+    height: 8px;
+    background: var(--accent, #fff);
+    border: none;
+    border-radius: 0;
+    cursor: crosshair;
+  }
+
+  .boids-controls select {
+    width: 100%;
+    margin-top: 8px;
+    padding: 8px 12px;
+    border: 1px solid var(--accent, rgba(255, 255, 255, 0.2));
+    border-radius: 0;
+    background: transparent;
+    color: #fff;
+    font-family: inherit;
+    font-size: 12px;
+    cursor: pointer;
+    transition: border-color 0.15s ease;
+  }
+
+  .boids-controls select:hover {
+    border-color: var(--accent, rgba(255, 255, 255, 0.4));
+  }
+
+  .boids-controls select:focus {
+    outline: none;
+    border-color: var(--accent, #fff);
+  }
+
+  .boids-controls select option {
+    background: #000;
+    color: #fff;
+  }
+
+  .boids-controls small {
+    display: block;
+    margin-top: 4px;
+    color: rgba(255, 255, 255, 0.4);
+    font-size: 10px;
+    letter-spacing: 0.02em;
+  }
+
+  .checkbox-label {
+    display: flex !important;
+    align-items: center;
+    gap: 12px;
+    cursor: pointer;
+    margin-bottom: 12px;
+  }
+
+  .checkbox-label input[type="checkbox"] {
+    -webkit-appearance: none;
+    appearance: none;
+    width: 14px;
+    height: 14px;
+    border: 1px solid var(--accent, rgba(255, 255, 255, 0.4));
+    border-radius: 0;
+    background: transparent;
+    cursor: pointer;
+    position: relative;
+    flex-shrink: 0;
+    box-sizing: border-box;
+  }
+
+  .checkbox-label input[type="checkbox"]:checked {
+    background: var(--accent, #fff);
+    border-color: var(--accent, #fff);
+  }
+
+  .checkbox-label input[type="checkbox"]:checked::after {
+    content: "";
+    position: absolute;
+    left: 50%;
+    top: 46%;
+    width: 4px;
+    height: 8px;
+    border: solid #000;
+    border-width: 0 2px 2px 0;
+    transform: translate(-50%, -50%) rotate(45deg);
+  }
+
+  .control-row {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 12px;
+    margin-bottom: 16px;
+  }
+
+  .control-row button {
+    padding: 10px 16px;
+    border: 1px solid var(--accent, rgba(255, 255, 255, 0.3));
+    border-radius: 0;
+    background: transparent;
+    color: #fff;
+    cursor: pointer;
+    font-family: inherit;
+    font-size: 11px;
+    font-weight: 500;
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+    transition: all 0.15s ease;
+  }
+
+  .control-row button:hover {
+    background: var(--accent, #fff);
+    color: #000;
+    border-color: var(--accent, #fff);
+  }
+
+  .boids-controls::-webkit-scrollbar {
+    width: 4px;
+  }
+
+  .boids-controls::-webkit-scrollbar-track {
+    background: transparent;
+  }
+
+  .boids-controls::-webkit-scrollbar-thumb {
+    background: var(--accent, rgba(255, 255, 255, 0.3));
+    border-radius: 0;
+  }
+
+  .boids-controls::-webkit-scrollbar-thumb:hover {
+    background: var(--accent, rgba(255, 255, 255, 0.5));
+  }
+</style>
+
+<script>
+  // ============================================
+  // Boid class
+  // ============================================
+  class Boid {
+    x: number;
+    y: number;
+    dx: number;
+    dy: number;
+    baseHue: number;
+    currentColor: { h: number; s: number; l: number };
+
+    // Trail ring buffer (fixed-size, avoids per-frame shift())
+    trailX: Float32Array;
+    trailY: Float32Array;
+    trailIndex: number = 0; // next write index
+    trailCount: number = 0; // number of valid points
+
+    constructor(x: number, y: number, dx: number, dy: number, trailLength: number) {
+      this.x = x;
+      this.y = y;
+      this.dx = dx;
+      this.dy = dy;
+      this.baseHue = Math.random() * 360;
+      this.currentColor = { h: this.baseHue, s: 70, l: 60 };
+
+      const len = Math.max(0, trailLength | 0);
+      this.trailX = new Float32Array(len);
+      this.trailY = new Float32Array(len);
+    }
+
+    resetTrail(): void {
+      this.trailIndex = 0;
+      this.trailCount = 0;
+    }
+
+    pushTrail(x: number, y: number): void {
+      const len = this.trailX.length;
+      if (len === 0) return;
+      this.trailX[this.trailIndex] = x;
+      this.trailY[this.trailIndex] = y;
+      this.trailIndex = (this.trailIndex + 1) % len;
+      if (this.trailCount < len) this.trailCount++;
+    }
+
+    resizeTrail(newLength: number): void {
+      const nextLen = Math.max(0, newLength | 0);
+      const prevLen = this.trailX.length;
+      if (nextLen === prevLen) return;
+
+      const nextX = new Float32Array(nextLen);
+      const nextY = new Float32Array(nextLen);
+      const copyCount = Math.min(this.trailCount, nextLen);
+
+      if (copyCount > 0 && nextLen > 0 && prevLen > 0) {
+        // Copy the newest `copyCount` points into [0..copyCount)
+        const startOldest = (this.trailIndex - this.trailCount + prevLen) % prevLen;
+        const dropOldest = this.trailCount - copyCount;
+        for (let i = 0; i < copyCount; i++) {
+          const oldIdx = (startOldest + dropOldest + i) % prevLen;
+          nextX[i] = this.trailX[oldIdx];
+          nextY[i] = this.trailY[oldIdx];
+        }
+      }
+
+      this.trailX = nextX;
+      this.trailY = nextY;
+      this.trailCount = copyCount;
+      this.trailIndex = nextLen === 0 ? 0 : copyCount % nextLen;
+    }
+  }
+
+  // ============================================
+  // Spatial Hash Grid for efficient neighbor lookups
+  // ============================================
+  class SpatialHashGrid {
+    private cellSize: number;
+    private invCellSize: number;
+    private cells: Map<string, Boid[]>;
+
+    constructor(cellSize: number) {
+      this.cellSize = Math.max(1, cellSize);
+      this.invCellSize = 1 / this.cellSize;
+      this.cells = new Map();
+    }
+
+    private key(xi: number, yi: number): string {
+      // Use a collision-free key; collisions in the previous numeric hash could
+      // silently explode neighbor counts at high boid densities.
+      return `${xi},${yi}`;
+    }
+
+    addBoid(boid: Boid): void {
+      const xi = Math.floor(boid.x * this.invCellSize);
+      const yi = Math.floor(boid.y * this.invCellSize);
+      const k = this.key(xi, yi);
+      let cell = this.cells.get(k);
+      if (!cell) {
+        cell = [];
+        this.cells.set(k, cell);
+      }
+      cell.push(boid);
+    }
+
+    clear(): void {
+      this.cells.clear();
+    }
+
+    rebuild(boids: Boid[]): void {
+      this.clear();
+      for (const boid of boids) {
+        this.addBoid(boid);
+      }
+    }
+
+    updateCellSize(newSize: number): void {
+      const size = Math.max(1, newSize);
+      if (size === this.cellSize) return;
+      this.cellSize = size;
+      this.invCellSize = 1 / size;
+    }
+
+    forEachNearby(
+      x: number,
+      y: number,
+      range: number,
+      cb: (boid: Boid) => void
+    ): void {
+      const cellRadius = Math.ceil(range * this.invCellSize);
+      const centerXi = Math.floor(x * this.invCellSize);
+      const centerYi = Math.floor(y * this.invCellSize);
+
+      for (let dxi = -cellRadius; dxi <= cellRadius; dxi++) {
+        for (let dyi = -cellRadius; dyi <= cellRadius; dyi++) {
+          const cell = this.cells.get(this.key(centerXi + dxi, centerYi + dyi));
+          if (!cell) continue;
+          for (let i = 0; i < cell.length; i++) {
+            cb(cell[i]);
+          }
+        }
+      }
+    }
+  }
+
+  // ============================================
+  // Performance Tracker
+  // ============================================
+  class PerformanceTracker {
+    private frameTimes: number[] = [];
+    private lastFrameTime: number = 0;
+    private maxSamples: number = 60;
+
+    update(): void {
+      const now = performance.now();
+      if (this.lastFrameTime > 0) {
+        const deltaTime = now - this.lastFrameTime;
+        this.frameTimes.push(deltaTime);
+        if (this.frameTimes.length > this.maxSamples) {
+          this.frameTimes.shift();
+        }
+      }
+      this.lastFrameTime = now;
+    }
+
+    getFPS(): number {
+      if (this.frameTimes.length === 0) return 0;
+      const avgFrameTime =
+        this.frameTimes.reduce((a, b) => a + b, 0) / this.frameTimes.length;
+      return 1000 / avgFrameTime;
+    }
+
+    getFrameTime(): number {
+      if (this.frameTimes.length === 0) return 0;
+      return (
+        this.frameTimes.reduce((a, b) => a + b, 0) / this.frameTimes.length
+      );
+    }
+  }
+
+  // ============================================
+  // Boids Instance Class (for multiple instances)
+  // ============================================
+  interface BoidsConfig {
+    nBoids: number;
+    visualRange: number;
+    minDistance: number;
+    maxSpeed: number;
+    minSpeed: number;
+    maxTurnRate: number;
+    fieldOfView: number;
+    alignmentFactor: number;
+    cohesionFactor: number;
+    separationFactor: number;
+    wallMargin: number;
+    wallTurnFactor: number;
+    cursorMagnetism: number;
+    cursorMagnetismRange: number;
+    boidSize: number;
+    trailLength: number;
+    drawTrail: boolean;
+    showVision: boolean;
+    visionBoidIndex: number;
+    followBoid: boolean;
+    zoomLevel: number;
+    cameraSmoothing: number;
+    zoomSmoothing: number;
+    colorMode: "uniform" | "random" | "velocity" | "flock";
+    uniformHue: number;
+    colorBlendSpeed: number;
+    fpsLimit: number;
+    enableFpsLimit: boolean;
+    showStats: boolean;
+    showControls: boolean;
+    enableScrollControl: boolean;
+  }
+
+  class BoidsInstance {
+    container: HTMLElement;
+    canvas: HTMLCanvasElement;
+    ctx: CanvasRenderingContext2D;
+    params: BoidsConfig;
+    boids: Boid[] = [];
+    spatialGrid: SpatialHashGrid;
+    perfTracker: PerformanceTracker;
+    width = 200;
+    height = 200;
+    lastRenderTime = 0;
+    isPaused = false;
+    mouseX = 0;
+    mouseY = 0;
+    cameraX = 0;
+    cameraY = 0;
+    currentZoom = 1.0;
+    targetZoom = 1.0;
+    animationId: number | null = null;
+    isVisible = true;
+
+    // Cache field-of-view math to avoid per-neighbor trig.
+    private cachedFovDeg = Number.NaN;
+    private cachedCosHalfFovSq = 0;
+    private cachedIsFullFov = true;
+
+    // Neighbor-accumulation scratch state (avoids allocating per-boid closures)
+    private accTargetBoid: Boid | null = null;
+    private accVX = 0;
+    private accVY = 0;
+    private accVMag2 = 0;
+    private accVisualRange2 = 0;
+    private accMinDistance2 = 0;
+    private accFullFov = true;
+    private accCosHalfFovSq = 0;
+    private accDoFlock = false;
+
+    private accSepX = 0;
+    private accSepY = 0;
+    private accAlignX = 0;
+    private accAlignY = 0;
+    private accCohX = 0;
+    private accCohY = 0;
+    private accCount = 0;
+    private accFlockAvgH = 0;
+    private accFlockCount = 0;
+
+    private accumulateNeighbor = (other: Boid): void => {
+      const boid = this.accTargetBoid;
+      if (!boid || other === boid) return;
+
+      const dx = other.x - boid.x;
+      const dy = other.y - boid.y;
+      const dist2 = dx * dx + dy * dy;
+      if (dist2 === 0) return;
+
+      if (dist2 > this.accVisualRange2 && dist2 > this.accMinDistance2) return;
+
+      let inFov = true;
+      if (!this.accFullFov) {
+        if (this.accVMag2 === 0) {
+          inFov = true;
+        } else {
+          const dot = this.accVX * dx + this.accVY * dy;
+          if (dot <= 0) {
+            inFov = false;
+          } else {
+            inFov = dot * dot >= this.accVMag2 * dist2 * this.accCosHalfFovSq;
+          }
+        }
+      }
+
+      if (dist2 <= this.accMinDistance2) {
+        const factor = inFov ? 1.0 : 0.5;
+        this.accSepX += (-dx) * factor;
+        this.accSepY += (-dy) * factor;
+      }
+
+      if (dist2 <= this.accVisualRange2 && inFov) {
+        this.accAlignX += other.dx;
+        this.accAlignY += other.dy;
+        this.accCohX += other.x;
+        this.accCohY += other.y;
+        this.accCount++;
+
+        if (this.accDoFlock) {
+          let otherH = other.currentColor.h;
+          let avgH = this.accFlockAvgH;
+          if (Math.abs(avgH - otherH) > 180) {
+            if (otherH < avgH) otherH += 360;
+            else avgH += 360;
+          }
+          this.accFlockAvgH = (avgH * this.accFlockCount + otherH) / (this.accFlockCount + 1);
+          this.accFlockCount++;
+        }
+      }
+    }
+
+    constructor(container: HTMLElement) {
+      this.container = container;
+      const configStr = container.dataset.boidsConfig;
+      this.params = configStr ? JSON.parse(configStr) : {} as BoidsConfig;
+      
+      this.canvas = container.querySelector('canvas')!;
+      this.ctx = this.canvas.getContext('2d')!;
+      this.currentZoom = this.params.zoomLevel;
+      this.targetZoom = this.params.zoomLevel;
+      
+      this.spatialGrid = new SpatialHashGrid(this.params.visualRange);
+      this.perfTracker = new PerformanceTracker();
+      
+      this.init();
+    }
+
+    init(): void {
+      this.sizeCanvas();
+      this.initBoids();
+      this.setupEventListeners();
+      if (this.params.showControls) {
+        this.setupControls();
+      }
+      this.startAnimation();
+    }
+
+    sizeCanvas(): void {
+      this.width = this.container.clientWidth;
+      this.height = this.container.clientHeight;
+      this.canvas.width = this.width;
+      this.canvas.height = this.height;
+    }
+
+    initBoids(): void {
+      this.boids = [];
+      for (let i = 0; i < this.params.nBoids; i++) {
+        this.boids.push(
+          new Boid(
+            Math.random() * this.width,
+            Math.random() * this.height,
+            Math.random() * 10 - 5,
+            Math.random() * 10 - 5,
+            this.params.trailLength
+          )
+        );
+      }
+    }
+
+    setupEventListeners(): void {
+      window.addEventListener('resize', () => this.sizeCanvas());
+      
+      this.canvas.addEventListener('mousemove', (e) => {
+        const rect = this.canvas.getBoundingClientRect();
+        this.mouseX = e.clientX - rect.left;
+        this.mouseY = e.clientY - rect.top;
+      });
+
+      // Intersection Observer for performance
+      const observer = new IntersectionObserver((entries) => {
+        entries.forEach(entry => {
+          this.isVisible = entry.isIntersecting;
+        });
+      }, { threshold: 0.1 });
+      observer.observe(this.container);
+    }
+
+    // Public method to update params (for scroll control)
+    setParams(newParams: Partial<BoidsConfig>): void {
+      Object.assign(this.params, newParams);
+      if (newParams.zoomLevel !== undefined) {
+        this.targetZoom = newParams.zoomLevel;
+      }
+    }
+
+    // Utility functions
+    distanceSquared(boid1: Boid, boid2: Boid): number {
+      const dx = boid1.x - boid2.x;
+      const dy = boid1.y - boid2.y;
+      return dx * dx + dy * dy;
+    }
+
+    magnitude(x: number, y: number): number {
+      return Math.sqrt(x * x + y * y);
+    }
+
+    normalizeAngle(angle: number): number {
+      while (angle > Math.PI) angle -= 2 * Math.PI;
+      while (angle < -Math.PI) angle += 2 * Math.PI;
+      return angle;
+    }
+
+    private refreshFovCache(): void {
+      const fov = this.params.fieldOfView;
+      if (this.cachedFovDeg === fov) return;
+      this.cachedFovDeg = fov;
+      if (fov >= 360) {
+        this.cachedIsFullFov = true;
+        this.cachedCosHalfFovSq = 0;
+        return;
+      }
+      this.cachedIsFullFov = false;
+      const halfFovRad = (fov * Math.PI) / 360;
+      const cosHalf = Math.cos(halfFovRad);
+      this.cachedCosHalfFovSq = cosHalf * cosHalf;
+    }
+
+    isInFieldOfView(boid: Boid, other: Boid): boolean {
+      this.refreshFovCache();
+      if (this.cachedIsFullFov) return true;
+
+      const vx = boid.dx;
+      const vy = boid.dy;
+      const vMag2 = vx * vx + vy * vy;
+      if (vMag2 === 0) return true;
+
+      const dx = other.x - boid.x;
+      const dy = other.y - boid.y;
+      const dist2 = dx * dx + dy * dy;
+      if (dist2 === 0) return true;
+
+      const dot = vx * dx + vy * dy;
+      if (dot <= 0) return false;
+      return dot * dot >= vMag2 * dist2 * this.cachedCosHalfFovSq;
+    }
+
+    applyTurnRateLimit(boid: Boid, origDx: number, origDy: number): void {
+      const currentHeading = Math.atan2(origDy, origDx);
+      const desiredHeading = Math.atan2(boid.dy, boid.dx);
+      let angleDiff = this.normalizeAngle(desiredHeading - currentHeading);
+      const clampedDiff = Math.max(
+        -this.params.maxTurnRate,
+        Math.min(this.params.maxTurnRate, angleDiff)
+      );
+      const newHeading = currentHeading + clampedDiff;
+      const speed = Math.max(this.magnitude(boid.dx, boid.dy), this.params.minSpeed);
+      boid.dx = Math.cos(newHeading) * speed;
+      boid.dy = Math.sin(newHeading) * speed;
+    }
+
+    // Boid behavior functions
+
+    limitSpeed(boid: Boid): void {
+      const dx = boid.dx;
+      const dy = boid.dy;
+      const speed2 = dx * dx + dy * dy;
+      if (speed2 === 0) return;
+
+      const maxSpeed2 = this.params.maxSpeed * this.params.maxSpeed;
+      const minSpeed2 = this.params.minSpeed * this.params.minSpeed;
+
+      if (speed2 > maxSpeed2) {
+        const inv = this.params.maxSpeed / Math.sqrt(speed2);
+        boid.dx = dx * inv;
+        boid.dy = dy * inv;
+      } else if (speed2 < minSpeed2) {
+        const inv = this.params.minSpeed / Math.sqrt(speed2);
+        boid.dx = dx * inv;
+        boid.dy = dy * inv;
+      }
+    }
+
+    avoidWalls(boid: Boid): void {
+      const margin = this.params.wallMargin;
+      const turnFactor = this.params.wallTurnFactor;
+      if (boid.x < margin) boid.dx += turnFactor * (1 - boid.x / margin);
+      if (boid.x > this.width - margin) boid.dx -= turnFactor * (1 - (this.width - boid.x) / margin);
+      if (boid.y < margin) boid.dy += turnFactor * (1 - boid.y / margin);
+      if (boid.y > this.height - margin) boid.dy -= turnFactor * (1 - (this.height - boid.y) / margin);
+    }
+
+    attractToCursor(boid: Boid): void {
+      if (this.params.cursorMagnetism === 0) return;
+      const worldMouseX = this.mouseX / this.currentZoom + this.cameraX;
+      const worldMouseY = this.mouseY / this.currentZoom + this.cameraY;
+      const dx = worldMouseX - boid.x;
+      const dy = worldMouseY - boid.y;
+      const dist = Math.sqrt(dx * dx + dy * dy);
+      if (dist < this.params.cursorMagnetismRange && dist > 0) {
+        const strength = this.params.cursorMagnetism * (1 - dist / this.params.cursorMagnetismRange);
+        boid.dx += (dx / dist) * strength;
+        boid.dy += (dy / dist) * strength;
+      }
+    }
+
+    updateBoidColor(boid: Boid, flockAvgHue?: number): void {
+      switch (this.params.colorMode) {
+        case "uniform":
+          boid.currentColor = { h: this.params.uniformHue, s: 70, l: 60 };
+          break;
+        case "random":
+          boid.currentColor = { h: boid.baseHue, s: 70, l: 60 };
+          break;
+        case "velocity":
+          const angle = Math.atan2(boid.dy, boid.dx);
+          const hue = ((angle + Math.PI) / (2 * Math.PI)) * 360;
+          const speed = Math.sqrt(boid.dx * boid.dx + boid.dy * boid.dy);
+          const lightness = 40 + (speed / this.params.maxSpeed) * 30;
+          boid.currentColor = { h: hue, s: 80, l: lightness };
+          break;
+        case "flock":
+          {
+            const target = (flockAvgHue ?? boid.currentColor.h) % 360;
+            const current = boid.currentColor.h;
+            // Move along the shortest arc on the hue circle.
+            const delta = ((((target - current) % 360) + 540) % 360) - 180;
+            boid.currentColor.h = (current + delta * this.params.colorBlendSpeed + 360) % 360;
+            boid.currentColor.s = 75;
+            boid.currentColor.l = 55;
+          }
+          break;
+      }
+    }
+
+    getBoidColor(boid: Boid): string {
+      const { h, s, l } = boid.currentColor;
+      return `hsl(${h}, ${s}%, ${l}%)`;
+    }
+
+    getBoidTrailColor(boid: Boid): string {
+      const { h, s } = boid.currentColor;
+      return `hsla(${h}, ${s}%, 50%, 0.4)`;
+    }
+
+    drawBoid(boid: Boid, index: number): void {
+      const size = this.params.boidSize;
+      const isVisionBoid = this.params.showVision && index === this.params.visionBoidIndex;
+
+      if (isVisionBoid) {
+        const boidHeading = Math.atan2(boid.dy, boid.dx);
+        const fovRadians = (this.params.fieldOfView * Math.PI) / 180;
+        const halfFov = fovRadians / 2;
+
+        this.ctx.strokeStyle = "rgba(85, 140, 244, 0.3)";
+        this.ctx.fillStyle = "rgba(85, 140, 244, 0.1)";
+        this.ctx.beginPath();
+        this.ctx.moveTo(boid.x, boid.y);
+        this.ctx.arc(boid.x, boid.y, this.params.visualRange, boidHeading - halfFov, boidHeading + halfFov);
+        this.ctx.closePath();
+        this.ctx.fill();
+        this.ctx.stroke();
+
+        if (this.params.fieldOfView < 360) {
+          this.ctx.strokeStyle = "rgba(100, 100, 100, 0.2)";
+          this.ctx.fillStyle = "rgba(50, 50, 50, 0.05)";
+          this.ctx.beginPath();
+          this.ctx.moveTo(boid.x, boid.y);
+          this.ctx.arc(boid.x, boid.y, this.params.visualRange, boidHeading + halfFov, boidHeading - halfFov);
+          this.ctx.closePath();
+          this.ctx.fill();
+          this.ctx.stroke();
+        }
+
+        this.ctx.strokeStyle = "rgba(244, 85, 85, 0.5)";
+        this.ctx.fillStyle = "rgba(244, 85, 85, 0.1)";
+        this.ctx.beginPath();
+        this.ctx.arc(boid.x, boid.y, this.params.minDistance, 0, Math.PI * 2);
+        this.ctx.fill();
+        this.ctx.stroke();
+
+        const visualRange2 = this.params.visualRange * this.params.visualRange;
+        const minDistance2 = this.params.minDistance * this.params.minDistance;
+        this.spatialGrid.forEachNearby(boid.x, boid.y, this.params.visualRange, (other) => {
+          if (other === boid) return;
+          const dx = other.x - boid.x;
+          const dy = other.y - boid.y;
+          const dist2 = dx * dx + dy * dy;
+          if (dist2 > visualRange2) return;
+
+          const inFov = this.isInFieldOfView(boid, other);
+          if (dist2 <= minDistance2) {
+            this.ctx.strokeStyle = inFov ? "rgba(244, 85, 85, 0.8)" : "rgba(244, 85, 85, 0.4)";
+          } else if (inFov) {
+            this.ctx.strokeStyle = "rgba(85, 244, 140, 0.5)";
+          } else {
+            this.ctx.strokeStyle = "rgba(100, 100, 100, 0.3)";
+          }
+          this.ctx.beginPath();
+          this.ctx.moveTo(boid.x, boid.y);
+          this.ctx.lineTo(other.x, other.y);
+          this.ctx.stroke();
+        });
+      }
+
+      const boidColor = isVisionBoid ? "#f4a855" : this.getBoidColor(boid);
+      this.ctx.fillStyle = boidColor;
+
+      // Draw a triangle oriented along velocity without save/translate/rotate.
+      const speed2 = boid.dx * boid.dx + boid.dy * boid.dy;
+      let ux = 1;
+      let uy = 0;
+      if (speed2 > 1e-8) {
+        const invSpeed = 1 / Math.sqrt(speed2);
+        ux = boid.dx * invSpeed;
+        uy = boid.dy * invSpeed;
+      }
+      const px = -uy;
+      const py = ux;
+      const tailX = boid.x - ux * size;
+      const tailY = boid.y - uy * size;
+      const halfW = size / 3;
+      const leftX = tailX + px * halfW;
+      const leftY = tailY + py * halfW;
+      const rightX = tailX - px * halfW;
+      const rightY = tailY - py * halfW;
+
+      this.ctx.beginPath();
+      this.ctx.moveTo(boid.x, boid.y);
+      this.ctx.lineTo(leftX, leftY);
+      this.ctx.lineTo(rightX, rightY);
+      this.ctx.closePath();
+      this.ctx.fill();
+
+      if (this.params.drawTrail && boid.trailCount > 1) {
+        this.ctx.strokeStyle = isVisionBoid ? "rgba(244, 168, 85, 0.4)" : this.getBoidTrailColor(boid);
+        const len = boid.trailX.length;
+        if (len === 0) return;
+        const start = (boid.trailIndex - boid.trailCount + len) % len;
+        this.ctx.beginPath();
+        let prevX = boid.trailX[start];
+        let prevY = boid.trailY[start];
+        this.ctx.moveTo(prevX, prevY);
+        const maxGap2 = 20 * 20;
+        for (let i = 1; i < boid.trailCount; i++) {
+          const idx = (start + i) % len;
+          const x = boid.trailX[idx];
+          const y = boid.trailY[idx];
+          const dx = x - prevX;
+          const dy = y - prevY;
+          if (dx * dx + dy * dy < maxGap2) {
+            this.ctx.lineTo(x, y);
+          } else {
+            this.ctx.moveTo(x, y);
+          }
+          prevX = x;
+          prevY = y;
+        }
+        this.ctx.stroke();
+      }
+    }
+
+    drawStats(): void {
+      if (!this.params.showStats) return;
+      const fps = this.perfTracker.getFPS().toFixed(1);
+      const frameTime = this.perfTracker.getFrameTime().toFixed(2);
+      this.ctx.fillStyle = "rgba(0, 0, 0, 0.7)";
+      this.ctx.fillRect(10, 10, 160, 50);
+      this.ctx.fillStyle = "#fff";
+      this.ctx.font = "14px monospace";
+      this.ctx.fillText(`FPS: ${fps}`, 20, 30);
+      this.ctx.fillText(`Frame: ${frameTime}ms`, 20, 50);
+    }
+
+    updateBoids(): void {
+      const visualRange = this.params.visualRange;
+      const minDistance = this.params.minDistance;
+      const visualRange2 = visualRange * visualRange;
+      const minDistance2 = minDistance * minDistance;
+
+      const alignmentFactor = this.params.alignmentFactor;
+      const cohesionFactor = this.params.cohesionFactor;
+      const separationFactor = this.params.separationFactor;
+
+      const maxSpeed = this.params.maxSpeed;
+      const minSpeed = this.params.minSpeed;
+      const maxSpeed2 = maxSpeed * maxSpeed;
+      const minSpeed2 = minSpeed * minSpeed;
+
+      const fullFov = this.params.fieldOfView >= 360;
+      const cosHalfFovSq = fullFov ? 0 : (() => {
+        const c = Math.cos((this.params.fieldOfView * Math.PI) / 360);
+        return c * c;
+      })();
+
+      const colorMode = this.params.colorMode;
+      const doFlock = colorMode === 'flock';
+
+      this.spatialGrid.updateCellSize(visualRange);
+      this.spatialGrid.rebuild(this.boids);
+
+      const boids = this.boids;
+      for (let i = 0; i < boids.length; i++) {
+        const boid = boids[i];
+        const origDx = boid.dx;
+        const origDy = boid.dy;
+
+        // Set up accumulator state and scan neighbors without allocating per-boid closures.
+        this.accTargetBoid = boid;
+        this.accVX = boid.dx;
+        this.accVY = boid.dy;
+        this.accVMag2 = this.accVX * this.accVX + this.accVY * this.accVY;
+        this.accVisualRange2 = visualRange2;
+        this.accMinDistance2 = minDistance2;
+        this.accFullFov = fullFov;
+        this.accCosHalfFovSq = cosHalfFovSq;
+        this.accDoFlock = doFlock;
+
+        this.accSepX = 0;
+        this.accSepY = 0;
+        this.accAlignX = 0;
+        this.accAlignY = 0;
+        this.accCohX = 0;
+        this.accCohY = 0;
+        this.accCount = 0;
+        this.accFlockAvgH = boid.currentColor.h;
+        this.accFlockCount = 1;
+
+        this.spatialGrid.forEachNearby(boid.x, boid.y, visualRange, this.accumulateNeighbor);
+
+        // Separation
+        boid.dx += this.accSepX * separationFactor;
+        boid.dy += this.accSepY * separationFactor;
+
+        // Alignment & cohesion
+        if (this.accCount > 0) {
+          const dxAvg = this.accAlignX / this.accCount;
+          const dyAvg = this.accAlignY / this.accCount;
+          boid.dx += (dxAvg - boid.dx) * alignmentFactor;
+          boid.dy += (dyAvg - boid.dy) * alignmentFactor;
+
+          const cx = this.accCohX / this.accCount;
+          const cy = this.accCohY / this.accCount;
+          boid.dx += (cx - boid.x) * cohesionFactor;
+          boid.dy += (cy - boid.y) * cohesionFactor;
+        }
+
+        this.avoidWalls(boid);
+        this.attractToCursor(boid);
+
+        // Speed clamp (squared comparisons; sqrt only if we need to rescale)
+        let speed2 = boid.dx * boid.dx + boid.dy * boid.dy;
+        if (speed2 > maxSpeed2) {
+          const inv = maxSpeed / Math.sqrt(speed2);
+          boid.dx *= inv;
+          boid.dy *= inv;
+        } else if (speed2 < minSpeed2 && speed2 > 0) {
+          const inv = minSpeed / Math.sqrt(speed2);
+          boid.dx *= inv;
+          boid.dy *= inv;
+        }
+
+        this.applyTurnRateLimit(boid, origDx, origDy);
+
+        if (colorMode === 'flock') {
+          let h = this.accFlockAvgH % 360;
+          if (h < 0) h += 360;
+          this.updateBoidColor(boid, h);
+        } else {
+          this.updateBoidColor(boid);
+        }
+
+        boid.x += boid.dx;
+        boid.y += boid.dy;
+
+        if (this.params.drawTrail && this.params.trailLength > 0) {
+          if (boid.trailX.length !== this.params.trailLength) {
+            boid.resizeTrail(this.params.trailLength);
+          }
+          boid.pushTrail(boid.x, boid.y);
+        }
+      }
+
+      // Clear accumulator target reference.
+      this.accTargetBoid = null;
+    }
+
+    render(): void {
+      this.ctx.clearRect(0, 0, this.width, this.height);
+      this.ctx.save();
+
+      // Smooth zoom interpolation
+      const zoomSmoothing = this.params.zoomSmoothing || 0.05;
+      this.currentZoom += (this.targetZoom - this.currentZoom) * zoomSmoothing;
+
+      if (this.params.followBoid && this.boids[this.params.visionBoidIndex]) {
+        const targetBoid = this.boids[this.params.visionBoidIndex];
+        const targetCameraX = targetBoid.x - this.width / (2 * this.currentZoom);
+        const targetCameraY = targetBoid.y - this.height / (2 * this.currentZoom);
+        this.cameraX += (targetCameraX - this.cameraX) * this.params.cameraSmoothing;
+        this.cameraY += (targetCameraY - this.cameraY) * this.params.cameraSmoothing;
+      } else {
+        const targetCameraX = (this.width * (this.currentZoom - 1)) / (2 * this.currentZoom);
+        const targetCameraY = (this.height * (this.currentZoom - 1)) / (2 * this.currentZoom);
+        this.cameraX += (targetCameraX - this.cameraX) * this.params.cameraSmoothing;
+        this.cameraY += (targetCameraY - this.cameraY) * this.params.cameraSmoothing;
+      }
+
+      this.ctx.scale(this.currentZoom, this.currentZoom);
+      this.ctx.translate(-this.cameraX, -this.cameraY);
+
+      for (let i = 0; i < this.boids.length; i++) {
+        this.drawBoid(this.boids[i], i);
+      }
+
+      this.ctx.restore();
+      this.drawStats();
+    }
+
+    animationLoop = (timestamp: number): void => {
+      this.perfTracker.update();
+
+      if (this.params.enableFpsLimit) {
+        const minFrameTime = 1000 / this.params.fpsLimit;
+        if (timestamp - this.lastRenderTime < minFrameTime) {
+          this.animationId = requestAnimationFrame(this.animationLoop);
+          return;
+        }
+      }
+      this.lastRenderTime = timestamp;
+
+      // When offscreen, skip heavy simulation + drawing work.
+      if (!this.isVisible) {
+        this.animationId = requestAnimationFrame(this.animationLoop);
+        return;
+      }
+
+      if (!this.isPaused) {
+        this.updateBoids();
+      }
+      this.render();
+      this.animationId = requestAnimationFrame(this.animationLoop);
+    }
+
+    startAnimation(): void {
+      this.animationId = requestAnimationFrame(this.animationLoop);
+    }
+
+    stopAnimation(): void {
+      if (this.animationId !== null) {
+        cancelAnimationFrame(this.animationId);
+        this.animationId = null;
+      }
+    }
+
+    setupControls(): void {
+      const panel = this.container.querySelector('.boids-controls') as HTMLElement;
+      const toggleBtn = this.container.querySelector('.boids-toggle-btn') as HTMLElement;
+      
+      if (!panel || !toggleBtn) return;
+
+      toggleBtn.addEventListener('click', () => {
+        panel.classList.toggle('collapsed');
+        toggleBtn.innerHTML = panel.classList.contains('collapsed') ? '&#9776;' : '&times;';
+      });
+
+      const bindSlider = (className: string, key: keyof BoidsConfig, transform?: (v: number) => number): void => {
+        const slider = this.container.querySelector(`.${className}`) as HTMLInputElement;
+        const valueSpan = this.container.querySelector(`.${className}-value`) as HTMLElement;
+        if (!slider || !valueSpan) return;
+
+        slider.addEventListener('input', () => {
+          const value = transform ? transform(parseFloat(slider.value)) : parseFloat(slider.value);
+          (this.params as any)[key] = value;
+          valueSpan.textContent = String(value);
+          if (key === 'zoomLevel') {
+            this.targetZoom = value;
+          }
+        });
+      };
+
+      const bindCheckbox = (className: string, key: keyof BoidsConfig): void => {
+        const checkbox = this.container.querySelector(`.${className}`) as HTMLInputElement;
+        if (!checkbox) return;
+        checkbox.addEventListener('change', () => {
+          (this.params as any)[key] = checkbox.checked;
+        });
+      };
+
+      bindSlider('visual-range', 'visualRange');
+      bindSlider('min-distance', 'minDistance');
+      bindSlider('max-speed', 'maxSpeed', (v) => parseFloat(v.toFixed(4)));
+      bindSlider('alignment', 'alignmentFactor', (v) => parseFloat(v.toFixed(4)));
+      bindSlider('cohesion', 'cohesionFactor', (v) => parseFloat(v.toFixed(4)));
+      bindSlider('separation', 'separationFactor', (v) => parseFloat(v.toFixed(4)));
+      bindSlider('wall-margin', 'wallMargin');
+      bindSlider('wall-turn', 'wallTurnFactor', (v) => parseFloat(v.toFixed(4)));
+      bindSlider('min-speed', 'minSpeed', (v) => parseFloat(v.toFixed(4)));
+      bindSlider('max-turn-rate', 'maxTurnRate', (v) => parseFloat(v.toFixed(4)));
+      bindSlider('fov', 'fieldOfView');
+      bindSlider('boid-size', 'boidSize');
+      bindSlider('trail-length', 'trailLength', (v) => {
+        const newLength = Math.floor(v);
+        for (const boid of this.boids) {
+          boid.resizeTrail(newLength);
+        }
+        return newLength;
+      });
+      bindSlider('fps-limit', 'fpsLimit');
+      bindSlider('vision-boid', 'visionBoidIndex');
+      bindSlider('zoom-level', 'zoomLevel', (v) => parseFloat(v.toFixed(1)));
+      bindSlider('camera-smoothing', 'cameraSmoothing', (v) => parseFloat(v.toFixed(2)));
+      bindSlider('cursor-magnetism', 'cursorMagnetism', (v) => parseFloat(v.toFixed(2)));
+      bindSlider('magnetism-range', 'cursorMagnetismRange');
+      bindSlider('uniform-hue', 'uniformHue');
+      bindSlider('color-blend-speed', 'colorBlendSpeed', (v) => parseFloat(v.toFixed(3)));
+
+      bindCheckbox('draw-trail', 'drawTrail');
+      bindCheckbox('show-vision', 'showVision');
+      bindCheckbox('enable-fps-limit', 'enableFpsLimit');
+      bindCheckbox('show-stats', 'showStats');
+      bindCheckbox('follow-boid', 'followBoid');
+
+      const colorModeSelect = this.container.querySelector('.color-mode') as HTMLSelectElement;
+      if (colorModeSelect) {
+        colorModeSelect.addEventListener('change', () => {
+          this.params.colorMode = colorModeSelect.value as BoidsConfig['colorMode'];
+          const uniformHueControl = this.container.querySelector('.uniform-hue-control') as HTMLElement;
+          const blendSpeedControl = this.container.querySelector('.blend-speed-control') as HTMLElement;
+          if (uniformHueControl) uniformHueControl.style.display = this.params.colorMode === 'uniform' ? 'block' : 'none';
+          if (blendSpeedControl) blendSpeedControl.style.display = this.params.colorMode === 'flock' ? 'block' : 'none';
+        });
+      }
+
+      const pauseBtn = this.container.querySelector('.pause-btn') as HTMLElement;
+      if (pauseBtn) {
+        pauseBtn.addEventListener('click', () => {
+          this.isPaused = !this.isPaused;
+          pauseBtn.innerHTML = this.isPaused ? '&#9654; Resume' : '&#10074;&#10074; Pause';
+        });
+      }
+
+      const resetBtn = this.container.querySelector('.reset-btn') as HTMLElement;
+      if (resetBtn) {
+        resetBtn.addEventListener('click', () => {
+          this.initBoids();
+        });
+      }
+
+      const boidCountInput = this.container.querySelector('.boid-count') as HTMLInputElement;
+      const boidCountValue = this.container.querySelector('.boid-count-value') as HTMLElement;
+      if (boidCountInput && boidCountValue) {
+        boidCountInput.addEventListener('input', () => {
+          this.params.nBoids = parseInt(boidCountInput.value);
+          boidCountValue.textContent = String(this.params.nBoids);
+        });
+      }
+    }
+  }
+
+  // Global registry for boids instances
+  declare global {
+    interface Window {
+      boidsInstances: Map<string, BoidsInstance>;
+    }
+  }
+
+  window.boidsInstances = window.boidsInstances || new Map();
+
+  // Initialize all boids containers on the page
+  function initAllBoids(): void {
+    const containers = document.querySelectorAll('.boids-container');
+    containers.forEach((container) => {
+      const el = container as HTMLElement;
+      const id = el.id;
+      if (!window.boidsInstances.has(id)) {
+        const instance = new BoidsInstance(el);
+        window.boidsInstances.set(id, instance);
+      }
+    });
+  }
+
+  // Run on load
+  if (document.readyState === 'loading') {
+    document.addEventListener('DOMContentLoaded', initAllBoids);
+  } else {
+    initAllBoids();
+  }
+</script>

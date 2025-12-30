@@ -8,59 +8,176 @@ interface Props {
 const { images } = Astro.props;
 ---
 
-<div class="gallery">
-  {
-    images.map((image, index) => (
-      <div class="gallery-item">
-        <Image 
-          src={image.default} 
-          alt="Gallery photo" 
-          loading={index < 8 ? "eager" : "lazy"}
-          widths={[400, 800, 1200, 1920, 2560, 3840, 5120, 6000]}
-          sizes="(max-width: 640px) 400px, (max-width: 1024px) 800px, 1200px"
-          quality={95}
-        />
-      </div>
-    ))
-  }
-</div>
+<section class="swiss-gallery">
+  <div class="gallery-grid">
+    {
+      images.map((image, index) => (
+        <article class="gallery-item" data-index={index}>
+          <div class="item-frame">
+            <Image 
+              src={image.default} 
+              alt={`Photo ${String(index + 1).padStart(2, '0')}`}
+              loading={index < 6 ? "eager" : "lazy"}
+              widths={[400, 800, 1200, 1920, 2560, 3840]}
+              sizes="(max-width: 640px) 100vw, (max-width: 1024px) 50vw, 33vw"
+              quality={90}
+            />
+          </div>
+          <span class="item-index">{String(index + 1).padStart(2, '0')}</span>
+        </article>
+      ))
+    }
+  </div>
+</section>
 
 <style>
-  .gallery {
-    padding: 2em 1em;
+  .swiss-gallery {
+    width: 100%;
+    padding: 0;
+    background: var(--bg-primary);
+  }
+
+  .gallery-grid {
     display: grid;
-    grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
-    gap: 1.5em;
-    margin: 0 auto;
+    grid-template-columns: repeat(12, 1fr);
+    gap: 2px;
+    /* background: var(--accent); */
+    background: var(--bg-primary)
   }
 
   .gallery-item {
     position: relative;
     overflow: hidden;
-    border-radius: 8px;
-    aspect-ratio: 1;
     cursor: pointer;
-    background: var(--gray-light);
-    transition: transform 0.2s ease;
+    background: var(--bg-primary);
   }
 
-  .gallery-item:hover {
-    transform: scale(1.02);
-    box-shadow: var(--box-shadow);
+  /* Swiss-style asymmetric grid pattern */
+  .gallery-item:nth-child(12n + 1) {
+    grid-column: span 5;
+    grid-row: span 2;
+  }
+  
+  .gallery-item:nth-child(12n + 2) {
+    grid-column: span 4;
+  }
+  
+  .gallery-item:nth-child(12n + 3) {
+    grid-column: span 3;
+  }
+  
+  .gallery-item:nth-child(12n + 4) {
+    grid-column: span 4;
+  }
+  
+  .gallery-item:nth-child(12n + 5) {
+    grid-column: span 3;
+    grid-row: span 2;
+  }
+  
+  .gallery-item:nth-child(12n + 6) {
+    grid-column: span 6;
+  }
+  
+  .gallery-item:nth-child(12n + 7) {
+    grid-column: span 6;
+  }
+  
+  .gallery-item:nth-child(12n + 8) {
+    grid-column: span 3;
+  }
+  
+  .gallery-item:nth-child(12n + 9) {
+    grid-column: span 4;
+    grid-row: span 2;
+  }
+  
+  .gallery-item:nth-child(12n + 10) {
+    grid-column: span 5;
+  }
+  
+  .gallery-item:nth-child(12n + 11) {
+    grid-column: span 5;
+  }
+  
+  .gallery-item:nth-child(12n + 12) {
+    grid-column: span 7;
   }
 
-  .gallery-item img {
+  .item-frame {
+    width: 100%;
+    height: 100%;
+    aspect-ratio: 4/3;
+    overflow: hidden;
+  }
+
+  .gallery-item:nth-child(12n + 1) .item-frame,
+  .gallery-item:nth-child(12n + 5) .item-frame,
+  .gallery-item:nth-child(12n + 9) .item-frame {
+    aspect-ratio: auto;
+    height: 100%;
+  }
+
+  .item-frame img {
     width: 100%;
     height: 100%;
     object-fit: cover;
     display: block;
+    filter: grayscale(0%);
+    transition: transform 0.4s cubic-bezier(0.25, 0.46, 0.45, 0.94), 
+                filter 0.4s ease;
   }
 
-  @media (max-width: 640px) {
-    .gallery {
-      grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
-      gap: 1em;
-      padding: 1em;
+  .item-index {
+    position: absolute;
+    bottom: 0;
+    left: 0;
+    font-size: clamp(1.5rem, 4vw, 3rem);
+    font-weight: 700;
+    line-height: 1;
+    color: white;
+    padding: 0.3em 0.4em;
+    background: var(--accent);
+    opacity: 0;
+    transform: translateY(100%);
+    transition: opacity 0.3s ease, transform 0.3s ease;
+  }
+
+  .gallery-item:hover .item-index {
+    opacity: 1;
+    transform: translateY(0);
+  }
+
+  /* Mobile: simpler 2-column grid */
+  @media (max-width: 768px) {
+    .gallery-grid {
+      grid-template-columns: repeat(2, 1fr);
+      gap: 1px;
+    }
+
+    .gallery-item,
+    .gallery-item:nth-child(n) {
+      grid-column: span 1 !important;
+      grid-row: span 1 !important;
+    }
+
+    /* Every 3rd item spans full width */
+    .gallery-item:nth-child(3n + 1) {
+      grid-column: span 2 !important;
+    }
+
+    .item-frame {
+      aspect-ratio: 1;
+    }
+
+    .gallery-item:nth-child(3n + 1) .item-frame {
+      aspect-ratio: 2/1;
+    }
+
+    .item-index {
+      font-size: 1rem;
+      opacity: 1;
+      transform: translateY(0);
     }
   }
 </style>
