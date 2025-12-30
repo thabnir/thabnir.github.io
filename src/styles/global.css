@@ -4,6 +4,9 @@
   License MIT: https://github.com/HermanMartinus/bearblog/blob/master/LICENSE.md
  */
 
+/* Custom fonts: */
+@import url("./neue-montreal-font.css");
+
 /* ============================================
    CSS CUSTOM PROPERTIES (VARIABLES)
    ============================================ */
@@ -11,8 +14,11 @@
 /* Light mode (default) */
 :root {
   /* Accent colors */
-  --accent: #ff853e;
-  --accent-dark: #a04826;
+  /* --accent: black;
+  --accent-dark: black;
+  --accent-light: black; */
+  --accent: #ff3c00;
+  --accent-dark: #cc3000;
   --accent-light: #ffeade;
 
   /* Grayscale colors (RGB values for alpha compositing) */
@@ -40,8 +46,11 @@
 @media (prefers-color-scheme: dark) {
   :root {
     /* Accent colors - slightly brighter for dark mode */
-    --accent: #ff9d5c;
-    --accent-dark: #ff853e;
+    /* --accent: white;
+    --accent-dark: white;
+    --accent-light: white; */
+    --accent: #ff3c00;
+    --accent-dark: #cc3000;
     --accent-light: #4a2917;
 
     /* Grayscale colors (RGB values for alpha compositing) */
@@ -51,7 +60,7 @@
     --gray-dark: 220, 225, 235;
 
     /* Background colors */
-    --bg-primary: #0f0f0f;
+    --bg-primary: #000;
     --bg-secondary: #242831;
 
     /* Text colors */
@@ -67,44 +76,12 @@
 }
 
 /* ============================================
-   FONT DECLARATIONS
-   ============================================ */
-
-@font-face {
-  font-family: "Montserrat";
-  src: url("/fonts/montserrat.ttf") format("truetype");
-  font-style: normal;
-  font-display: block;
-}
-
-@font-face {
-  font-family: "Optician-Sans";
-  src: url("/fonts/optician-sans.woff2") format("woff2");
-  font-style: normal;
-  font-display: block;
-}
-
-@font-face {
-  font-family: "Atkinson";
-  src: url("/fonts/atkinson-regular.woff") format("woff");
-  font-weight: 400;
-  font-style: normal;
-  font-display: optional;
-}
-@font-face {
-  font-family: "Atkinson";
-  src: url("/fonts/atkinson-bold.woff") format("woff");
-  font-weight: 700;
-  font-style: normal;
-  font-display: optional;
-}
-
-/* ============================================
    BASE STYLES
    ============================================ */
 
 body {
-  font-family: "Montserrat", sans-serif;
+  font-family:
+    "Neue Montreal", "Helvetica Neue", "Helvetica", "Arial", sans-serif;
   margin: 0;
   padding: 0;
   text-align: left;
@@ -140,7 +117,6 @@ h6 {
   margin: 0 0 0.5rem 0;
   color: var(--text-heading);
   line-height: 1.2;
-  font-family: "Optician-Sans", sans-serif;
 }
 h1 {
   font-size: 3.052em;
@@ -195,7 +171,7 @@ textarea {
   background: var(--bg-secondary);
   color: var(--text-primary);
   border: 1px solid rgb(var(--gray-light));
-  border-radius: 4px;
+  /* border-radius: 4px; */
   padding: 0.5em;
   transition:
     background-color 0.3s ease,
@@ -208,7 +184,7 @@ input {
   background: var(--bg-secondary);
   color: var(--text-primary);
   border: 1px solid rgb(var(--gray-light));
-  border-radius: 4px;
+  /* border-radius: 4px; */
   padding: 0.5em;
   transition:
     background-color 0.3s ease,
@@ -226,23 +202,7 @@ table {
 img {
   max-width: 100%;
   height: auto;
-  border-radius: 8px;
-}
-
-/* ============================================
-   CODE & PREFORMATTED TEXT
-   ============================================ */
-
-pre {
-  padding: 1.5em;
-  border-radius: 8px;
-  background: var(--bg-secondary);
-  overflow-x: auto;
-  transition: background-color 0.3s ease;
-}
-
-pre > code {
-  all: unset;
+  /* border-radius: 8px; */
 }
 
 /* ============================================
@@ -291,4 +251,10 @@ hr {
   clip: rect(1px, 1px, 1px, 1px);
   clip-path: inset(50%);
   white-space: nowrap;
+}
+
+.download-link {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
 }
