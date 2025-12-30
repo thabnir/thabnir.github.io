@@ -1,10 +1,7 @@
-assets/
-.vscode/
-node_modules/
-dist/
-build/
-.git/
-.astro/
-.env/
-.cache/
-.DS_Store
+# Ignore artifacts:
+build
+coverage
+
+# Don't even know why prettier was checking images...
+*.jpg
+*.png
