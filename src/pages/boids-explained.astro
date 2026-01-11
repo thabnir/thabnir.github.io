@@ -5,6 +5,7 @@ import BoidsCanvas from "../components/BoidsCanvas.astro";
 import { SITE_TITLE } from "../consts";
 import "katex/dist/katex.min.css";
 import { Prism } from "@astrojs/prism";
+import { Icon } from "astro-icon/components";
 
 const CODE_SEPARATE = `function separate(boid, neighbors) {
   let steer = { x: 0, y: 0 };
@@ -70,13 +71,23 @@ const CODE_SPATIAL_HASH = `class SpatialHashGrid {
     return nearby;
   }
 }`;
+
+const CODE_UPDATE = `function update(boid, neighbors) {
+  // Apply all three rules
+  boid.velocity += separate(boid, neighbors);
+  boid.velocity += align(boid, neighbors);
+  boid.velocity += cohere(boid, neighbors);
+
+  // And update the boid's position
+  boid.position += boid.velocity;
+}`;
 ---
 
 <!doctype html>
 <html lang="en">
   <head>
     <BaseHead
-      title={`Boids — ${SITE_TITLE}`}
+      title={`Boids`}
       description="An interactive exploration of emergent flocking behavior through Craig Reynolds' Boids algorithm"
     />
     <style>
@@ -102,7 +113,12 @@ const CODE_SPATIAL_HASH = `class SpatialHashGrid {
         --code-number: #0b6bcb;
         --code-string: #0b6bcb;
         --code-operator: rgba(var(--gray), 0.95);
+
         --code-punctuation: rgba(var(--gray), 0.9);
+
+        /* Layout spacing standardization */
+        --spacing-mobile: 1.5rem;
+        --spacing-desktop: 2rem;
       }
 
       /* Dark mode overlays */
@@ -124,6 +140,8 @@ const CODE_SPATIAL_HASH = `class SpatialHashGrid {
 
       html {
         scroll-behavior: smooth;
+        overscroll-behavior-y: none;
+        background-color: var(--bg-primary);
       }
 
       /* Fixed background boids - always visible at partial opacity.
@@ -174,7 +192,7 @@ const CODE_SPATIAL_HASH = `class SpatialHashGrid {
       .scroll-indicator {
         position: absolute;
         left: 50%;
-        bottom: calc(7.0rem + env(safe-area-inset-bottom, 0px));
+        bottom: calc(7rem + env(safe-area-inset-bottom, 0px));
         transform: translateX(-50%);
         display: flex;
         flex-direction: column;
@@ -253,9 +271,22 @@ const CODE_SPATIAL_HASH = `class SpatialHashGrid {
         display: flex;
         align-items: center;
         justify-content: center;
-        padding: 4rem 2rem;
+        padding: 4rem var(--spacing-desktop);
         box-sizing: border-box;
         position: relative;
+      }
+
+      /* Increase vertical padding on mobile for better spacing */
+      @media (max-width: 768px) {
+        .section {
+          padding: 6rem var(--spacing-mobile);
+        }
+
+        /* STRICTLY reset demo section padding so overlay handles it alone.
+           This prevents "double padding" (1.5rem from parent + 1.5rem from overlay). */
+        .demo-section {
+          padding: 0;
+        }
       }
 
       .section-content {
@@ -313,16 +344,17 @@ const CODE_SPATIAL_HASH = `class SpatialHashGrid {
         Therefore, the rules below must be global.
       */
       :global(pre.code-block) {
-        /* Swiss-style: crisp edges, restrained palette, strong typographic rhythm.
-           Keep it translucent so boids remain visible (no blur). */
         box-sizing: border-box;
         width: 100%;
         max-width: 100%;
         margin: 1.5rem 0;
         padding: 1.25rem 1.25rem;
 
-        background: rgba(var(--gray-light), 0.18);
-        border: 1px solid rgba(var(--gray), 0.32);
+        /* background: rgba(var(--gray-light), 0.8); */
+        /* background: var(--bg-primary); */
+        /* background: rgba(var(--bg-primary), 1); */
+        /* border: 1px solid rgba(var(--gray), 0.32); */
+
         border-left: 4px solid var(--accent, #ff3c00);
         border-radius: 0;
 
@@ -341,7 +373,9 @@ const CODE_SPATIAL_HASH = `class SpatialHashGrid {
       }
 
       /* Separation demo: slightly more opaque code background for readability. */
-      :global(.content-wrapper section[data-section="separation"] pre.code-block) {
+      :global(
+        .content-wrapper section[data-section="separation"] pre.code-block
+      ) {
         background: rgba(var(--gray-light), 0.26);
         border-color: rgba(var(--gray), 0.38);
       }
@@ -398,17 +432,11 @@ const CODE_SPATIAL_HASH = `class SpatialHashGrid {
         color: var(--text-primary);
       }
 
-      /* If Prism emits no spans for some tokens, keep the base text readable. */
-      :global(pre.code-block),
-      :global(pre.code-block code),
-      :global(pre.code-block span) {
-        text-shadow: none;
-      }
-
       /* Demo section with embedded boids */
       .demo-section {
         position: relative;
         min-height: 100vh;
+        /* RESET padding: overlay handles the spacing internally */
         padding: 0;
         overflow: hidden;
         /* Solid background hides the fixed background boids layer */
@@ -446,6 +474,16 @@ const CODE_SPATIAL_HASH = `class SpatialHashGrid {
         display: block;
       }
 
+      /* On mobile, use flex column to let content flow naturally */
+      @media (max-width: 768px) {
+        .section.demo-section {
+          display: flex;
+          flex-direction: column;
+          height: auto;
+          min-height: 100vh;
+        }
+      }
+
       /* Zoom POV uses a sticky viewport-height stage */
       .zoom-sticky-container {
         width: 100%;
@@ -465,6 +503,14 @@ const CODE_SPATIAL_HASH = `class SpatialHashGrid {
         left: 0;
         width: 100%;
         height: 100%;
+      }
+
+      /* On mobile, the canvas should stay fixed in background of the section */
+      @media (max-width: 768px) {
+        .demo-boids {
+          position: absolute;
+          height: 100%;
+        }
       }
 
       .demo-overlay {
@@ -498,18 +544,17 @@ const CODE_SPATIAL_HASH = `class SpatialHashGrid {
         --vision-radius: 200px; /* visualRange(40) * zoomLevel(5) */
         --vision-feather: 96px;
 
-        background:
-          /* Left panel support for text/code */
-          /* Centered vision vignette */
-          radial-gradient(
-            circle at 50% 50%,
-            transparent 0,
-            transparent calc(var(--vision-radius) - var(--vision-feather)),
-            rgba(var(--gray), 0.14) calc(var(--vision-radius) - 18px),
-            var(--bg-overlay-light, rgba(0, 0, 0, 0.4)) calc(var(--vision-radius) + 18px),
-            var(--bg-overlay, rgba(0, 0, 0, 0.9)) calc(var(--vision-radius) + 220px),
-            var(--bg-primary) 100%
-          );
+        /* Only darken outward from center, no inner glow */
+        background: radial-gradient(
+          circle at 50% 50%,
+          transparent 0,
+          transparent var(--vision-radius),
+          var(--bg-overlay-light, rgba(0, 0, 0, 0.4))
+            calc(var(--vision-radius) - 18px),
+          var(--bg-overlay, rgba(0, 0, 0, 0.9))
+            calc(var(--vision-radius) + 200px),
+          var(--bg-primary) 100%
+        );
       }
 
       .demo-overlay .section-content {
@@ -545,68 +590,60 @@ const CODE_SPATIAL_HASH = `class SpatialHashGrid {
         );
       }
 
-      .zoom-overlay-panel {
+      /* NYT-style scroll blurbs for zoom section */
+      .zoom-blurb {
         position: absolute;
-        left: clamp(1.25rem, 6vw, 6rem);
-        top: clamp(1.25rem, 7vh, 4rem);
-        width: min(760px, calc(100% - 2.5rem));
-        pointer-events: auto;
+        left: clamp(1rem, 4vw, 4rem);
+        max-width: min(320px, calc(50% - 2rem));
+        padding: 1rem 1.25rem;
+        background: var(--bg-overlay);
+        border-left: 3px solid var(--accent);
+        font-size: 1rem;
+        line-height: 1.6;
         opacity: 0;
-        transition: opacity 200ms ease;
+        transform: translateY(12px);
+        transition:
+          opacity 300ms ease,
+          transform 300ms ease;
+        pointer-events: none;
+        z-index: 10;
       }
 
-      .zoom-overlay-panel-inner {
-        background: var(--bg-overlay, rgba(255, 255, 255, 0.92));
-        border: 1px solid rgba(var(--gray), 0.25);
-        padding: 1.5rem;
-      }
-
-      .zoom-overlay-panel .section-title {
-        font-size: clamp(1.5rem, 3.5vw, 2.25rem);
-        margin-bottom: 1rem;
-      }
-
-      .zoom-overlay-panel .section-text {
-        font-size: 1.05rem;
-        line-height: 1.75;
-        opacity: 0.9;
-        max-width: 70ch;
-      }
-
-      /* Behavior indicator */
-      .behavior-indicator {
-        position: fixed;
-        bottom: 2rem;
-        left: 2rem;
-        z-index: 100;
-        background: var(--bg-primary, rgba(0, 0, 0, 0.9));
-        border: 1px solid rgba(var(--gray), 0.35);
-        padding: 1rem 1.5rem;
-        font-size: 0.8rem;
-        max-width: 300px;
-        opacity: 0;
-        transform: translateY(20px);
-        transition: all 0.4s ease;
-      }
-
-      .behavior-indicator.visible {
+      .zoom-blurb.visible {
         opacity: 1;
         transform: translateY(0);
       }
 
-      .behavior-indicator h4 {
-        margin: 0 0 0.5rem 0;
-        font-size: 0.7rem;
-        font-weight: 700;
-        letter-spacing: 0.15em;
-        text-transform: uppercase;
-        color: var(--accent, #ff3c00);
+      .zoom-blurb p {
+        margin: 0;
       }
 
-      .behavior-indicator p {
-        margin: 0;
-        line-height: 1.5;
-        opacity: 0.8;
+      .zoom-blurb strong {
+        color: var(--accent);
+      }
+
+      /* Position each blurb at different vertical spots */
+      .zoom-blurb-1 {
+        top: 15%;
+      }
+      .zoom-blurb-2 {
+        top: 35%;
+      }
+      .zoom-blurb-3 {
+        top: 55%;
+      }
+      .zoom-blurb-4 {
+        top: 75%;
+      }
+
+      @media (max-width: 768px) {
+        .zoom-blurb {
+          left: 1rem;
+          right: auto;
+          max-width: calc(45% - 1rem);
+          font-size: 0.9rem;
+          padding: 0.75rem 1rem;
+        }
       }
 
       /* Rules list */
@@ -635,15 +672,40 @@ const CODE_SPATIAL_HASH = `class SpatialHashGrid {
         border-color: var(--accent, #ff3c00);
       }
 
-      /* Mobile/narrow: keep the overlay content visually centered and avoid edge clipping. */
-      @media (max-width: 720px) {
+      /* Mobile/narrow: content flows naturally */
+      @media (max-width: 768px) {
         .demo-overlay {
-          justify-content: center;
-          padding: 0 1.25rem;
+          position: relative;
+          height: auto;
+          /* Use standard mobile padding */
+          padding: 6rem var(--spacing-mobile);
+          background: linear-gradient(
+            180deg,
+            var(--bg-overlay, rgba(0, 0, 0, 0.9)) 0%,
+            var(--bg-overlay-light, rgba(0, 0, 0, 0.4)) 40%,
+            transparent 100%
+          );
+          pointer-events: none;
+        }
+
+        /* Update gradient for separation section on mobile */
+        .demo-overlay--separation {
+          background: radial-gradient(
+            circle at 50% 30%,
+            transparent 0,
+            transparent var(--vision-radius),
+            var(--bg-overlay-light, rgba(0, 0, 0, 0.4))
+              calc(var(--vision-radius) - 18px),
+            var(--bg-overlay, rgba(0, 0, 0, 0.9))
+              calc(var(--vision-radius) + 200px),
+            var(--bg-primary) 100%
+          );
         }
 
         .demo-overlay .section-content {
           width: 100%;
+          padding: 0;
+          pointer-events: auto;
         }
       }
 
@@ -744,22 +806,74 @@ const CODE_SPATIAL_HASH = `class SpatialHashGrid {
         opacity: 0.7;
       }
 
-      /* Progress bar */
-      .progress-bar {
-        position: fixed;
-        top: 0;
-        left: 0;
-        width: 100%;
-        height: 3px;
-        background: rgba(255, 255, 255, 0.1);
-        z-index: 1000;
+      /* Playground header */
+      .playground-header {
+        position: absolute;
+        top: 2rem;
+        left: 2rem;
+        z-index: 10;
+        max-width: 400px;
       }
 
-      .progress-fill {
-        height: 100%;
-        width: 0%;
-        background: var(--accent, #ff3c00);
-        transition: width 0.1s ease-out;
+      .playground-header .section-number {
+        display: block;
+        margin-bottom: 0.5rem;
+      }
+
+      .playground-header .section-title {
+        font-size: 2rem;
+        margin-bottom: 1rem;
+      }
+
+      .playground-hint {
+        display: flex;
+        align-items: center;
+        gap: 1rem;
+        background: var(--bg-overlay, rgba(255, 255, 255, 0.95));
+        padding: 0.75rem 1rem;
+        border-left: 3px solid var(--accent, #ff3c00);
+        font-size: 0.9rem;
+        animation: fadeInUp 0.4s ease 0.8s both;
+      }
+
+      @keyframes fadeInUp {
+        from {
+          opacity: 0;
+          transform: translateY(8px);
+        }
+        to {
+          opacity: 1;
+          transform: translateY(0);
+        }
+      }
+
+      .playground-hint.hidden {
+        display: none;
+      }
+
+      .hint-close {
+        background: none;
+        border: none;
+        cursor: pointer;
+        padding: 0.25rem;
+        line-height: 1;
+        opacity: 0.7;
+        transition:
+          opacity 0.2s,
+          color 0.2s;
+        color: var(--accent, #ff3c00);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+      }
+
+      .hint-close svg {
+        width: 1.25rem;
+        height: 1.25rem;
+      }
+
+      .hint-close:hover {
+        opacity: 1;
       }
 
       /* Zoom section specific styling - transparent to show bg boids */
@@ -767,8 +881,16 @@ const CODE_SPATIAL_HASH = `class SpatialHashGrid {
         background: transparent;
         min-height: 70vh;
         align-items: flex-end;
-        padding: 6rem 2rem 2.5rem;
+        /* Use standard padding */
+        padding: 6rem var(--spacing-desktop) 2.5rem;
         position: relative;
+      }
+
+      @media (max-width: 768px) {
+        .zoom-section {
+          padding: 6rem var(--spacing-mobile) 2.5rem;
+          min-height: 50vh; /* Reduced height on mobile */
+        }
       }
 
       /* Smooth fade from opaque background to transparent */
@@ -787,8 +909,8 @@ const CODE_SPATIAL_HASH = `class SpatialHashGrid {
       .zoom-section .section-content {
         position: relative;
         z-index: 10;
-        padding: 2rem;
-        border-radius: 1rem;
+        /* Remove inner padding to match width of other sections */
+        padding: 0;
       }
 
       /* Quote block */
@@ -876,10 +998,6 @@ const CODE_SPATIAL_HASH = `class SpatialHashGrid {
     </style>
   </head>
   <body>
-    <div class="progress-bar">
-      <div class="progress-fill" id="progress-fill"></div>
-    </div>
-
     <div class="header-wrapper">
       <Header />
     </div>
@@ -934,9 +1052,14 @@ const CODE_SPATIAL_HASH = `class SpatialHashGrid {
             </p>
           </div>
           <blockquote class="quote-block">
-            "Flocks, herds, and schools are examples of aggregate motion. Groups
-            of creatures moving together form elegant and complex patterns."
-            <div class="quote-author">— Craig Reynolds, 1987</div>
+            <!-- "The aggregate motion of the simulated flock is the result of the
+            dense interaction of the relatively simple behaviors of the
+            individual simulated birds." -->
+            ... thousands of fishes moved as a huge beast, piercing the water. They
+            appeared united, inexorably bound to a common fate. How comes this unity?
+            <div class="quote-author">
+              — Anonymous, 17th century (from Shaw)
+            </div>
           </blockquote>
         </div>
       </section>
@@ -1011,24 +1134,28 @@ const CODE_SPATIAL_HASH = `class SpatialHashGrid {
             zoomLevel={5.0}
             cameraSmoothing={1.0}
             showVision={true}
+            showVisionCone={false}
             maxTurnRate={0.06}
           />
         </div>
         <div
           class="demo-overlay demo-overlay--separation"
-          style="--vision-radius: 200px; --vision-feather: 192px;"
+          style="--vision-radius: 202px; --vision-feather: 192px;"
         >
           <div class="section-content">
-            <span class="section-number">03 — Separation</span>
-            <h2 class="section-title">Personal Space</h2>
+            <span class="section-number">03 — Don't Crash</span>
+            <h2 class="section-title">Separation</h2>
             <div class="section-text">
               <p>
-                Watch how the boids actively avoid each other. With only
-                separation enabled, they move straight until they have to dodge
-                a collision.
+                The separation rule is the most basic of the three. It simply
+                steers each boid to avoid collisions with nearby flockmates.
+                <!-- </p>
+              <p> -->
+                With just separation enabled, a boid's only job is to avoid running
+                into its neighbors.
               </p>
             </div>
-            <Prism class="code-block" lang="ts" code={CODE_SEPARATE} />
+            <!-- <Prism class="code-block" lang="ts" code={CODE_SEPARATE} /> -->
           </div>
         </div>
       </section>
@@ -1052,21 +1179,24 @@ const CODE_SPATIAL_HASH = `class SpatialHashGrid {
             trailLength={50}
             maxSpeed={1.5}
             enableFpsLimit={true}
+            cursorMagnetism={0.2}
+            cursorMagnetismRange={300}
           />
         </div>
         <div class="demo-overlay">
           <div class="section-content">
-            <span class="section-number">04 — Alignment</span>
-            <h2 class="section-title">Moving as One</h2>
+            <span class="section-number">04 — Follow the Flock</span>
+            <h2 class="section-title">Alignment</h2>
             <div class="section-text">
               <p>
-                Notice how the boids synchronize their direction. Their colors
-                represent the direction of motion. Bands of similar color mean
-                the alignment step is working. This is achieved without any global
-                coordination, only local rules on individual boids.
+                Alignment is the second rule, and it's the most interesting.
+                Alignment steers each boid to match the average heading of its
+                neighbors. With just alignment enabled, the boids will start to
+                move in the same direction. They also do a much better job of
+                avoiding collisions.
               </p>
             </div>
-            <Prism class="code-block" lang="ts" code={CODE_ALIGN} />
+            <!-- <Prism class="code-block" lang="ts" code={CODE_ALIGN} /> -->
           </div>
         </div>
       </section>
@@ -1090,26 +1220,28 @@ const CODE_SPATIAL_HASH = `class SpatialHashGrid {
             drawTrail={true}
             trailLength={30}
             maxSpeed={1.0}
+            cursorMagnetism={0.2}
+            cursorMagnetismRange={300}
           />
         </div>
         <div class="demo-overlay">
           <div class="section-content">
-            <span class="section-number">05 — Cohesion</span>
-            <h2 class="section-title">Strength in Numbers</h2>
+            <span class="section-number">05 — Get Close</span>
+            <h2 class="section-title">Cohesion</h2>
             <div class="section-text">
               <p>
                 Here the boids actively seek the center of their local group.
                 Watch how they form tight clusters that split and merge
-                organically. The colors now blend between neighbors, visualizing
-                the "flock" connections.
+                organically. Neighboring boids' colors blend together to
+                represent flock connections.
               </p>
             </div>
-            <Prism class="code-block" lang="ts" code={CODE_COHERE} />
+            <!-- <Prism class="code-block" lang="ts" code={CODE_COHERE} /> -->
           </div>
         </div>
       </section>
 
-      <!-- Zoom into boid perspective -->
+      <!-- Zoom intro hint -->
       <section
         class="section zoom-section"
         data-section="zoom"
@@ -1120,8 +1252,8 @@ const CODE_SPATIAL_HASH = `class SpatialHashGrid {
           <h2 class="section-title">A Boid's-Eye View</h2>
           <div class="section-text">
             <p>
-              Keep scrolling to lock onto a single boid. We'll zoom in and
-              follow its local perception as it navigates the flock.
+              Keep scrolling to zoom in on a single boid and watch how it
+              perceives the world.
             </p>
           </div>
         </div>
@@ -1132,7 +1264,7 @@ const CODE_SPATIAL_HASH = `class SpatialHashGrid {
         class="section demo-section zoom-pov-section"
         data-section="boid-pov"
         data-behavior="zooming"
-        style="height: 250vh; position: relative;"
+        style="height: 500vh; position: relative;"
       >
         <div
           class="zoom-sticky-container"
@@ -1166,24 +1298,21 @@ const CODE_SPATIAL_HASH = `class SpatialHashGrid {
             class="demo-overlay zoom-overlay"
             style="position: absolute; top: 0; left: 0; width: 100%; height: 100%;"
           >
-            <div class="zoom-overlay-panel" id="zoom-overlay-panel">
-              <div class="zoom-overlay-panel-inner">
-                <span class="section-number">06 — Perspective</span>
-                <h2 class="section-title">A Boid's Local World</h2>
-                <div class="section-text">
-                  <p>
-                    Watch the camera zoom in to follow a single boid. Its field
-                    of view cone represents what it can “see.” The red circle
-                    shows its personal space bubble.
-                  </p>
-                  <p>
-                    From this perspective, you can appreciate how each boid
-                    makes decisions based only on local perception, yet
-                    collectively produces emergent behavior we observe from
-                    afar.
-                  </p>
-                </div>
-              </div>
+            <!-- NYT-style scroll blurbs - positioned left to avoid center boid -->
+            <div class="zoom-blurb zoom-blurb-1" id="zoom-blurb-1">
+              <p>The highlighted cone shows what this boid can see.</p>
+            </div>
+            <div class="zoom-blurb zoom-blurb-2" id="zoom-blurb-2">
+              <p>
+                The red circle is the minimum distance it will keep from other
+                boids.
+              </p>
+            </div>
+            <div class="zoom-blurb zoom-blurb-3" id="zoom-blurb-3">
+              <p>Each boid only knows about other neighboring boids.</p>
+            </div>
+            <div class="zoom-blurb zoom-blurb-4" id="zoom-blurb-4">
+              <p>But together, they create emergent flocking behaviors.</p>
             </div>
           </div>
         </div>
@@ -1197,8 +1326,9 @@ const CODE_SPATIAL_HASH = `class SpatialHashGrid {
           <div class="section-text">
             <p>
               A naive implementation checks every boid against every other boid,
-              resulting in $O(n^2)$ complexity. With 1000 boids, that's one
-              1,000,000 distance calculations per time step.
+              resulting in quadratic time complexity. With just 1,000 boids,
+              that's one million distance calculations per time step. As the
+              number of boids grows, this quickly becomes intractable.
             </p>
             <p>
               The solution? A <strong>spatial hash grid</strong>. By dividing
@@ -1207,14 +1337,53 @@ const CODE_SPATIAL_HASH = `class SpatialHashGrid {
               thousands of boids to flock smoothly at 60fps.
             </p>
           </div>
-          <Prism class="code-block" lang="ts" code={CODE_SPATIAL_HASH} />
+          <!-- <Prism class="code-block" lang="ts" code={CODE_SPATIAL_HASH} /> -->
+        </div>
+      </section>
+
+      <!-- Putting It Together -->
+      <section
+        class="section demo-section"
+        data-section="together"
+        data-behavior="flocking"
+      >
+        <div class="demo-boids">
+          <BoidsCanvas
+            id="demo-together"
+            nBoids={300}
+            boidSize={10}
+            separationFactor={0.0035}
+            alignmentFactor={0.003}
+            cohesionFactor={0.0005}
+            colorMode="velocity"
+            drawTrail={true}
+            trailLength={30}
+            maxSpeed={1.8}
+            enableFpsLimit={true}
+            cursorMagnetism={0.2}
+            cursorMagnetismRange={300}
+          />
+        </div>
+        <div class="demo-overlay">
+          <div class="section-content">
+            <span class="section-number">08 — Synthesis</span>
+            <h2 class="section-title">Putting It All Together</h2>
+            <div class="section-text">
+              <p>
+                Combining Separation, Alignment, and Cohesion produces a
+                complete system that mimics the complex, fluid motion of real
+                flocking behavior in nature.
+              </p>
+            </div>
+            <!-- <Prism class="code-block" lang="ts" code={CODE_UPDATE} /> -->
+          </div>
         </div>
       </section>
 
       <!-- Applications -->
       <section class="section" data-section="applications">
         <div class="section-content">
-          <span class="section-number">08 — Applications</span>
+          <span class="section-number">09 — Applications</span>
           <h2 class="section-title">Beyond Simulation</h2>
           <div class="section-text">
             <p>
@@ -1250,10 +1419,18 @@ const CODE_SPATIAL_HASH = `class SpatialHashGrid {
 
       <!-- Full Experience -->
       <section class="full-experience" id="full-experience" data-section="full">
-        <!-- <div class="experience-header">
-          <h2>Boids Playground</h2>
-          <p>Click the menu button to access all controls</p>
-        </div> -->
+        <div class="playground-header">
+          <span class="section-number">10 — Playground</span>
+          <h2 class="section-title">Experiment</h2>
+          <div class="playground-hint" id="playground-hint">
+            <span
+              >Click the menu in the corner to tweak boid simulation parameters.</span
+            >
+            <button class="hint-close" aria-label="Close hint"
+              ><Icon name="material-symbols:close" /></button
+            >
+          </div>
+        </div>
         <div class="full-boids-container">
           <BoidsCanvas
             id="full-boids"
@@ -1273,351 +1450,236 @@ const CODE_SPATIAL_HASH = `class SpatialHashGrid {
             zoomLevel={1}
             cameraSmoothing={0.08}
             zoomSmoothing={0.02}
+            cursorMagnetism={0.15}
+            cursorMagnetismRange={350}
           />
         </div>
       </section>
 
-      <!-- Swiss Style Footer -->
-      <!-- <footer class="swiss-footer">
-        <div class="footer-grid">
-          <div class="footer-col">
-            <h4>Boids</h4>
-            <p>
-              An interactive exploration of emergent flocking behavior through
-              Craig Reynolds' 1986 algorithm.
-            </p>
-          </div>
-          <div class="footer-col">
-            <h4>Links</h4>
-            <a href="/">Home</a>
-            <a href="/blog">Blog</a>
-            <a href="/photos">Photos</a>
-          </div>
-          <div class="footer-col">
-            <h4>References</h4>
-            <a
-              href="https://www.red3d.com/cwr/boids/"
-              target="_blank"
-              rel="noopener">Original Paper</a
-            >
-            <a
-              href="https://en.wikipedia.org/wiki/Boids"
-              target="_blank"
-              rel="noopener">Wikipedia</a
-            >
-          </div>
-          <div class="footer-col">
-            <h4>Built With</h4>
-            <p>Astro, TypeScript, HTML Canvas</p>
-            <p class="copyright">© {new Date().getFullYear()}</p>
-          </div>
-        </div>
-      </footer>
-    </div> -->
+      <script>
+        import renderMathInElement from "katex/contrib/auto-render";
 
-    <!-- Behavior indicator -->
-    <!-- <div class="behavior-indicator" id="behavior-indicator">
-      <h4>Current Behavior</h4>
-      <p id="behavior-text">Observing baseline flock behavior</p>
-    </div> -->
+        const jumpLink = document.querySelector(".jump-link");
+        const backgroundBoids = document.querySelector(
+          ".boids-background",
+        ) as HTMLElement | null;
 
-    <script>
-      import renderMathInElement from "katex/contrib/auto-render";
+        // Scroll-based updates
+        function handleScroll() {
+          const windowHeight = window.innerHeight;
 
-      // Scroll progress
-      const progressFill = document.getElementById("progress-fill");
-      const jumpLink = document.querySelector(".jump-link");
-      const zoomOverlayPanel = document.getElementById("zoom-overlay-panel");
-      const backgroundBoids = document.querySelector(
-        ".boids-background"
-      ) as HTMLElement | null;
-
-      function updateProgress() {
-        const scrollTop = window.scrollY;
-        const docHeight =
-          document.documentElement.scrollHeight - window.innerHeight;
-        const progress = (scrollTop / docHeight) * 100;
-        if (progressFill) {
-          progressFill.style.width = `${progress}%`;
-        }
-      }
-
-      // Scroll-based boid parameter updates
-      const sections = document.querySelectorAll("[data-section]");
-      const behaviorIndicator = document.getElementById("behavior-indicator");
-      const behaviorText = document.getElementById("behavior-text");
-
-      const behaviors: Record<
-        string,
-        { text: string; params?: Record<string, any> }
-      > = {
-        intro: {
-          text: "Baseline flock behavior — all three rules in balance",
-        },
-        rules: {
-          text: "The three fundamental rules create emergent complexity",
-        },
-        separation: {
-          text: "Separation only — boids maintain personal space",
-        },
-        alignment: {
-          text: "Alignment added — boids match neighbor velocity",
-        },
-        cohesion: {
-          text: "Cohesion emphasized — boids seek flock center",
-        },
-        perspective: {
-          text: "Preparing to zoom in on a single boid...",
-        },
-        zooming: {
-          text: "Following boid #42 through the flock",
-        },
-        implementation: {
-          text: "Spatial partitioning enables thousands of boids",
-        },
-        applications: {
-          text: "Boids algorithms power real-world systems",
-        },
-        full: {
-          text: "Full control — experiment with all parameters!",
-        },
-      };
-
-      let currentSection = "";
-
-      function handleScroll() {
-        updateProgress();
-
-        const scrollY = window.scrollY;
-        const windowHeight = window.innerHeight;
-
-        // Find current section
-        let newSection = "";
-        sections.forEach((section) => {
-          const rect = section.getBoundingClientRect();
-          if (
-            rect.top < windowHeight * 0.5 &&
-            rect.bottom > windowHeight * 0.3
-          ) {
-            newSection = (section as HTMLElement).dataset.section || "";
-          }
-        });
-
-        // Update behavior indicator
-        if (newSection && newSection !== currentSection) {
-          currentSection = newSection;
-          const behavior = behaviors[currentSection];
-          if (behavior && behaviorIndicator && behaviorText) {
-            behaviorIndicator.classList.add("visible");
-            behaviorText.textContent = behavior.text;
-          }
-        }
-
-        // Handle zoom section scroll
-        const zoomSection = document.querySelector('[data-section="boid-pov"]');
-        if (zoomSection) {
-          const rect = zoomSection.getBoundingClientRect();
-          const sectionHeight = rect.height;
-          // Start zooming as soon as the section top reaches bottom of viewport
-          // End zooming when section bottom reaches top of viewport
-          const scrollIntoSection = windowHeight - rect.top;
-          const totalScrollDistance = sectionHeight + windowHeight;
-          const scrollProgress = Math.max(
-            0,
-            Math.min(1, scrollIntoSection / totalScrollDistance)
+          // Handle zoom section scroll
+          const zoomSection = document.querySelector(
+            '[data-section="boid-pov"]',
           );
+          if (zoomSection) {
+            const rect = zoomSection.getBoundingClientRect();
+            const sectionHeight = rect.height;
+            // Start zooming as soon as the section top reaches bottom of viewport
+            // End zooming when section bottom reaches top of viewport
+            const scrollIntoSection = windowHeight - rect.top;
+            const totalScrollDistance = sectionHeight + windowHeight;
+            const scrollProgress = Math.max(
+              0,
+              Math.min(1, scrollIntoSection / totalScrollDistance),
+            );
 
-          // Update zoom boids instance
+            // Update zoom boids instance
+            if (
+              window.boidsInstances &&
+              window.boidsInstances.has("demo-zoom-container")
+            ) {
+              const instance = window.boidsInstances.get("demo-zoom-container");
+              if (instance) {
+                // Use smaller zoom range on mobile for better proportions
+                const isMobile = window.innerWidth <= 768;
+                const minZoom = isMobile ? 0.6 : 1;
+                const maxZoom = isMobile ? 3.5 : 6.5;
+                const targetZoom =
+                  minZoom + scrollProgress * (maxZoom - minZoom);
+                instance.setParams({ zoomLevel: targetZoom });
+              }
+            }
+
+            // Show/hide NYT-style scroll blurbs based on progress
+            const blurb1 = document.getElementById("zoom-blurb-1");
+            const blurb2 = document.getElementById("zoom-blurb-2");
+            const blurb3 = document.getElementById("zoom-blurb-3");
+            const blurb4 = document.getElementById("zoom-blurb-4");
+
+            // Each blurb visible for a portion of the scroll
+            const show = (el: HTMLElement | null, visible: boolean) => {
+              if (el) el.classList.toggle("visible", visible);
+            };
+
+            show(blurb1, scrollProgress > 0.08 && scrollProgress < 0.35);
+            show(blurb2, scrollProgress > 0.25 && scrollProgress < 0.5);
+            show(blurb3, scrollProgress > 0.42 && scrollProgress < 0.7);
+            show(blurb4, scrollProgress > 0.6 && scrollProgress < 0.88);
+          }
+
+          // Hide jump link after scrolling a bit
+          const jumpLink = document.querySelector(".jump-link");
+          if (jumpLink) {
+            const scrollY = window.scrollY;
+            if (scrollY > windowHeight * 0.25) {
+              jumpLink.classList.add("is-hidden");
+            } else {
+              jumpLink.classList.remove("is-hidden");
+            }
+          }
+        }
+
+        window.addEventListener("scroll", handleScroll, { passive: true });
+
+        // Initial call
+        handleScroll();
+
+        // Set mobile-appropriate zoom levels for fixed-zoom demos
+        function setMobileZoomLevels() {
+          const isMobile = window.innerWidth <= 768;
+
+          // Separation demo (Personal Space) - reduce zoom on mobile
           if (
             window.boidsInstances &&
-            window.boidsInstances.has("demo-zoom-container")
+            window.boidsInstances.has("demo-separation-container")
           ) {
-            const instance = window.boidsInstances.get("demo-zoom-container");
-            if (instance) {
-              const minZoom = 1;
-              const maxZoom = 6.5;
-              const targetZoom = minZoom + scrollProgress * (maxZoom - minZoom);
-              instance.setParams({ zoomLevel: targetZoom });
+            const separationInstance = window.boidsInstances.get(
+              "demo-separation-container",
+            );
+            if (separationInstance) {
+              separationInstance.setParams({
+                zoomLevel: isMobile ? 3.5 : 5.0,
+              });
             }
           }
 
-          // Fade the POV text panel in/out during the scroll
-          if (zoomOverlayPanel) {
-            const fadeIn = Math.min(1, scrollProgress / 0.12);
-            const fadeOut =
-              scrollProgress > 0.9
-                ? Math.max(0, 1 - (scrollProgress - 0.9) / 0.1)
-                : 1;
-            const opacity = Math.max(0, Math.min(1, fadeIn * fadeOut));
-            (zoomOverlayPanel as HTMLElement).style.opacity = String(opacity);
-          }
-        }
-
-        // Hide jump link after leaving the top
-        if (jumpLink) {
-          if (scrollY > windowHeight * 0.35) {
-            jumpLink.classList.add("is-hidden");
-          } else {
-            jumpLink.classList.remove("is-hidden");
-          }
-        }
-
-        // Hide indicator at hero
-        if (scrollY < windowHeight * 0.5 && behaviorIndicator) {
-          behaviorIndicator.classList.remove("visible");
-        }
-      }
-
-      window.addEventListener("scroll", handleScroll, { passive: true });
-
-      // Initial call
-      handleScroll();
-
-      // Hide the farthest-back background boids when any foreground boids canvases are visible.
-      try {
-        const bgId = "bg-boids-container";
-        const foregroundCanvases = Array.from(
-          document.querySelectorAll<HTMLElement>(
-            `.boids-container:not(#${bgId})`
-          )
-        );
-
-        if (backgroundBoids && foregroundCanvases.length > 0) {
-          let visibleCount = 0;
-          const updateBgVisibility = (): void => {
-            backgroundBoids.classList.toggle("is-hidden", visibleCount > 0);
-          };
-
-          const io = new IntersectionObserver(
-            (entries) => {
-              for (const entry of entries) {
-                const wasVisible =
-                  (entry.target as HTMLElement).dataset.bgHidesBg === "1";
-                // Treat even small “slivers” (e.g. ~100px of a 100vh canvas) as visible,
-                // otherwise the fixed background layer can show behind/around the canvas.
-                const isVisible =
-                  entry.isIntersecting &&
-                  (entry.intersectionRatio >= 0.02 ||
-                    (entry.intersectionRect.height >= 16 &&
-                      entry.intersectionRect.width >= 16));
-
-                if (!wasVisible && isVisible) {
-                  (entry.target as HTMLElement).dataset.bgHidesBg = "1";
-                  visibleCount++;
-                } else if (wasVisible && !isVisible) {
-                  delete (entry.target as HTMLElement).dataset.bgHidesBg;
-                  visibleCount = Math.max(0, visibleCount - 1);
-                }
-              }
-              updateBgVisibility();
-            },
-            {
-              // Include low thresholds so we get callbacks as a canvas grows from
-              // a tiny intersection into a visible slice.
-              threshold: [0, 0.01, 0.02, 0.05, 0.1, 0.2, 0.3],
-              rootMargin: "0px",
+          // Playground - start more zoomed out on mobile
+          if (
+            window.boidsInstances &&
+            window.boidsInstances.has("full-boids-container")
+          ) {
+            const playgroundInstance = window.boidsInstances.get(
+              "full-boids-container",
+            );
+            if (playgroundInstance) {
+              playgroundInstance.setParams({
+                zoomLevel: isMobile ? 0.7 : 1.0,
+              });
             }
+          }
+        }
+
+        // Wait briefly for boids instances to initialize, then apply mobile zoom
+        setTimeout(setMobileZoomLevels, 100);
+
+        // Dismiss playground hint
+        const hintClose = document.querySelector(".hint-close");
+        const playgroundHint = document.getElementById("playground-hint");
+        if (hintClose && playgroundHint) {
+          hintClose.addEventListener("click", () => {
+            playgroundHint.classList.add("hidden");
+          });
+        }
+
+        // Hide the farthest-back background boids when any foreground boids canvases are visible.
+        try {
+          const bgId = "bg-boids-container";
+          const foregroundCanvases = Array.from(
+            document.querySelectorAll<HTMLElement>(
+              `.boids-container:not(#${bgId})`,
+            ),
           );
 
-          foregroundCanvases.forEach((el) => io.observe(el));
-        }
-      } catch (err) {
-        console.warn("Background boids visibility observer failed", err);
-      }
+          if (backgroundBoids && foregroundCanvases.length > 0) {
+            let visibleCount = 0;
+            const updateBgVisibility = (): void => {
+              backgroundBoids.classList.toggle("is-hidden", visibleCount > 0);
+            };
 
-      // KaTeX: render any $...$ / $$...$$ math in this page
-      try {
-        const root =
-          document.querySelector(".content-wrapper") ?? document.body;
-        renderMathInElement(root as HTMLElement, {
-          delimiters: [
-            { left: "$$", right: "$$", display: true },
-            { left: "$", right: "$", display: false },
-          ],
-          throwOnError: false,
-          ignoredClasses: ["code-block"],
-        });
-      } catch (err) {
-        // Non-fatal: page still works without math rendering.
-        console.warn("KaTeX auto-render failed", err);
-      }
+            const io = new IntersectionObserver(
+              (entries) => {
+                for (const entry of entries) {
+                  const wasVisible =
+                    (entry.target as HTMLElement).dataset.bgHidesBg === "1";
+                  // Treat even small “slivers” (e.g. ~100px of a 100vh canvas) as visible,
+                  // otherwise the fixed background layer can show behind/around the canvas.
+                  const isVisible =
+                    entry.isIntersecting &&
+                    (entry.intersectionRatio >= 0.02 ||
+                      (entry.intersectionRect.height >= 16 &&
+                        entry.intersectionRect.width >= 16));
 
-      // Full Experience zoom-out animation
-      // When the section first becomes visible, smoothly zoom out and stop following
-      try {
-        const fullExperienceSection = document.getElementById("full-experience");
-        let hasTriggeredZoomOut = false;
-        let hasPrimedFullExperience = false;
-        let zoomOutAnimationId: number | null = null;
-
-        if (fullExperienceSection) {
-          const fullExperienceObserver = new IntersectionObserver(
-            (entries) => {
-              for (const entry of entries) {
-                if (!entry.isIntersecting) continue;
-
-                // Prime the playground instance as soon as it starts intersecting,
-                // but keep the canvas hidden until the section is meaningfully in view.
-                const instance = window.boidsInstances?.get("full-boids-container");
-                if (instance && !hasPrimedFullExperience) {
-                  hasPrimedFullExperience = true;
-
-                  // Find the boid closest to the center of the canvas
-                  const centerX = instance.width / 2;
-                  const centerY = instance.height / 2;
-                  let closestIndex = 0;
-                  let closestDistance = Infinity;
-
-                  for (let i = 0; i < instance.boids.length; i++) {
-                    const boid = instance.boids[i];
-                    const dx = boid.x - centerX;
-                    const dy = boid.y - centerY;
-                    const dist = dx * dx + dy * dy; // squared distance is fine for comparison
-                    if (dist < closestDistance) {
-                      closestDistance = dist;
-                      closestIndex = i;
-                    }
+                  if (!wasVisible && isVisible) {
+                    (entry.target as HTMLElement).dataset.bgHidesBg = "1";
+                    visibleCount++;
+                  } else if (wasVisible && !isVisible) {
+                    delete (entry.target as HTMLElement).dataset.bgHidesBg;
+                    visibleCount = Math.max(0, visibleCount - 1);
                   }
-
-                  const targetBoid = instance.boids[closestIndex];
-                  const startZoom = 5;
-
-                  // Instantly position camera on the center boid (no smoothing)
-                  instance.cameraX = targetBoid.x - instance.width / (2 * startZoom);
-                  instance.cameraY = targetBoid.y - instance.height / (2 * startZoom);
-                  instance.currentZoom = startZoom;
-                  instance.targetZoom = startZoom;
-
-                  // Enable follow mode and show vision at the primed zoom.
-                  // (Canvas is still hidden via CSS until we add .is-active.)
-                  instance.setParams({
-                    visionBoidIndex: closestIndex,
-                    followBoid: true,
-                    showVision: true,
-                    zoomLevel: startZoom,
-                    cameraSmoothing: 0,
-                  });
                 }
+                updateBgVisibility();
+              },
+              {
+                // Include low thresholds so we get callbacks as a canvas grows from
+                // a tiny intersection into a visible slice.
+                threshold: [0, 0.01, 0.02, 0.05, 0.1, 0.2, 0.3],
+                rootMargin: "0px",
+              },
+            );
 
-                // Reveal once the section has a meaningful presence in the viewport.
-                // This prevents the “bottom edge peek” from showing a default state.
-                const revealNow =
-                  entry.intersectionRect.height >= window.innerHeight * 0.25;
-                if (revealNow) {
-                  fullExperienceSection.classList.add("is-active");
-                }
+            foregroundCanvases.forEach((el) => io.observe(el));
+          }
+        } catch (err) {
+          console.warn("Background boids visibility observer failed", err);
+        }
 
-                if (revealNow && !hasTriggeredZoomOut) {
-                  hasTriggeredZoomOut = true;
+        // KaTeX: render any $...$ / $$...$$ math in this page
+        try {
+          const root =
+            document.querySelector(".content-wrapper") ?? document.body;
+          renderMathInElement(root as HTMLElement, {
+            delimiters: [
+              { left: "$$", right: "$$", display: true },
+              { left: "$", right: "$", display: false },
+            ],
+            throwOnError: false,
+            ignoredClasses: ["code-block"],
+          });
+        } catch (err) {
+          // Non-fatal: page still works without math rendering.
+          console.warn("KaTeX auto-render failed", err);
+        }
 
-                  // Start the zoom-out animation (if we have the instance).
-                  if (instance) {
+        // Full Experience zoom-out animation
+        // When the section first becomes visible, smoothly zoom out and stop following
+        try {
+          const fullExperienceSection =
+            document.getElementById("full-experience");
+          let hasTriggeredZoomOut = false;
+          let hasPrimedFullExperience = false;
+          let zoomOutAnimationId: number | null = null;
+
+          if (fullExperienceSection) {
+            const fullExperienceObserver = new IntersectionObserver(
+              (entries) => {
+                for (const entry of entries) {
+                  if (!entry.isIntersecting) continue;
+
+                  // Prime the playground instance as soon as it starts intersecting,
+                  // but keep the canvas hidden until the section is meaningfully in view.
+                  const instance = window.boidsInstances?.get(
+                    "full-boids-container",
+                  );
+                  if (instance && !hasPrimedFullExperience) {
+                    hasPrimedFullExperience = true;
+
                     // Find the boid closest to the center of the canvas
                     const centerX = instance.width / 2;
                     const centerY = instance.height / 2;
                     let closestIndex = 0;
                     let closestDistance = Infinity;
-                    
+
                     for (let i = 0; i < instance.boids.length; i++) {
                       const boid = instance.boids[i];
                       const dx = boid.x - centerX;
@@ -1628,72 +1690,131 @@ const CODE_SPATIAL_HASH = `class SpatialHashGrid {
                         closestIndex = i;
                       }
                     }
-                    
-                    // Set up for the zoom-in then zoom-out animation
+
                     const targetBoid = instance.boids[closestIndex];
                     const startZoom = 5;
-                    const endZoom = 1;
-                    
+
                     // Instantly position camera on the center boid (no smoothing)
-                    instance.cameraX = targetBoid.x - instance.width / (2 * startZoom);
-                    instance.cameraY = targetBoid.y - instance.height / (2 * startZoom);
+                    instance.cameraX =
+                      targetBoid.x - instance.width / (2 * startZoom);
+                    instance.cameraY =
+                      targetBoid.y - instance.height / (2 * startZoom);
                     instance.currentZoom = startZoom;
                     instance.targetZoom = startZoom;
-                    
-                    // Now enable follow mode and show vision
-                    instance.setParams({ 
+
+                    // Enable follow mode and show vision at the primed zoom.
+                    // (Canvas is still hidden via CSS until we add .is-active.)
+                    instance.setParams({
                       visionBoidIndex: closestIndex,
                       followBoid: true,
                       showVision: true,
-                      zoomLevel: startZoom
+                      zoomLevel: startZoom,
+                      cameraSmoothing: 0,
                     });
-                    
-                    const startTime = performance.now();
-                    const duration = 2000; // 2 seconds for smooth transition
-                    
-                    // Ease-out cubic function for smooth deceleration
-                    const easeOutCubic = (t: number): number => 1 - Math.pow(1 - t, 3);
-                    
-                    const animateZoomOut = (currentTime: number): void => {
-                      const elapsed = currentTime - startTime;
-                      const progress = Math.min(elapsed / duration, 1);
-                      const easedProgress = easeOutCubic(progress);
-                      
-                      // Interpolate zoom level
-                      const currentZoom = startZoom + (endZoom - startZoom) * easedProgress;
-                      instance.setParams({ zoomLevel: currentZoom });
-                      
-                      if (progress < 1) {
-                        zoomOutAnimationId = requestAnimationFrame(animateZoomOut);
-                      } else {
-                        // Ensure final state is set
-                        instance.setParams({ 
-                          zoomLevel: 1, 
-                          followBoid: false,
-                          showVision: false,
-                          cameraSmoothing: 0.1
-                        });
+                  }
+
+                  // Reveal once the section has a meaningful presence in the viewport.
+                  // This prevents the “bottom edge peek” from showing a default state.
+                  const revealNow =
+                    entry.intersectionRect.height >= window.innerHeight * 0.25;
+                  if (revealNow) {
+                    fullExperienceSection.classList.add("is-active");
+                  }
+
+                  if (revealNow && !hasTriggeredZoomOut) {
+                    hasTriggeredZoomOut = true;
+
+                    // Start the zoom-out animation (if we have the instance).
+                    if (instance) {
+                      // Find the boid closest to the center of the canvas
+                      const centerX = instance.width / 2;
+                      const centerY = instance.height / 2;
+                      let closestIndex = 0;
+                      let closestDistance = Infinity;
+
+                      for (let i = 0; i < instance.boids.length; i++) {
+                        const boid = instance.boids[i];
+                        const dx = boid.x - centerX;
+                        const dy = boid.y - centerY;
+                        const dist = dx * dx + dy * dy; // squared distance is fine for comparison
+                        if (dist < closestDistance) {
+                          closestDistance = dist;
+                          closestIndex = i;
+                        }
                       }
-                    };
-                    
-                    zoomOutAnimationId = requestAnimationFrame(animateZoomOut);
+
+                      // Set up for the zoom-in then zoom-out animation
+                      const targetBoid = instance.boids[closestIndex];
+                      const startZoom = 5;
+                      const endZoom = 1;
+
+                      // Instantly position camera on the center boid (no smoothing)
+                      instance.cameraX =
+                        targetBoid.x - instance.width / (2 * startZoom);
+                      instance.cameraY =
+                        targetBoid.y - instance.height / (2 * startZoom);
+                      instance.currentZoom = startZoom;
+                      instance.targetZoom = startZoom;
+
+                      // Now enable follow mode and show vision
+                      instance.setParams({
+                        visionBoidIndex: closestIndex,
+                        followBoid: true,
+                        showVision: true,
+                        zoomLevel: startZoom,
+                      });
+
+                      const startTime = performance.now();
+                      const duration = 2000; // 2 seconds for smooth transition
+
+                      // Ease-out cubic function for smooth deceleration
+                      const easeOutCubic = (t: number): number =>
+                        1 - Math.pow(1 - t, 3);
+
+                      const animateZoomOut = (currentTime: number): void => {
+                        const elapsed = currentTime - startTime;
+                        const progress = Math.min(elapsed / duration, 1);
+                        const easedProgress = easeOutCubic(progress);
+
+                        // Interpolate zoom level
+                        const currentZoom =
+                          startZoom + (endZoom - startZoom) * easedProgress;
+                        instance.setParams({ zoomLevel: currentZoom });
+
+                        if (progress < 1) {
+                          zoomOutAnimationId =
+                            requestAnimationFrame(animateZoomOut);
+                        } else {
+                          // Ensure final state is set
+                          instance.setParams({
+                            zoomLevel: 1,
+                            followBoid: false,
+                            showVision: false,
+                            cameraSmoothing: 0.1,
+                          });
+                        }
+                      };
+
+                      zoomOutAnimationId =
+                        requestAnimationFrame(animateZoomOut);
+                    }
                   }
                 }
-              }
-            },
-            {
-              // Include low thresholds so we can prime early, and a mid threshold
-              // so we can reveal/start the animation only when it feels intentional.
-              threshold: [0, 0.05, 0.15, 0.25, 0.35],
-              rootMargin: "0px",
-            }
-          );
+              },
+              {
+                // Include low thresholds so we can prime early, and a mid threshold
+                // so we can reveal/start the animation only when it feels intentional.
+                threshold: [0, 0.05, 0.15, 0.25, 0.35],
+                rootMargin: "0px",
+              },
+            );
 
-          fullExperienceObserver.observe(fullExperienceSection);
+            fullExperienceObserver.observe(fullExperienceSection);
+          }
+        } catch (err) {
+          console.warn("Full experience zoom animation failed", err);
         }
-      } catch (err) {
-        console.warn("Full experience zoom animation failed", err);
-      }
-    </script>
+      </script>
+    </div>
   </body>
 </html>
