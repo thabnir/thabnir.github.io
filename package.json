@@ -6,14 +6,16 @@
     "dev": "astro dev",
     "build": "astro build",
     "preview": "astro preview",
-    "astro": "astro"
+    "astro": "astro",
+    "format": "prettier . --write",
+    "generate-pwa-assets": "pwa-assets-generator"
   },
   "dependencies": {
     "@astrojs/mdx": "4.3.13",
     "@astrojs/prism": "^3.3.0",
     "@astrojs/rss": "4.0.14",
-    "@astrojs/sitemap": "^3.6.0",
-    "@iconify-json/material-symbols": "^1.2.50",
+    "@astrojs/sitemap": "^3.6.1",
+    "@iconify-json/material-symbols": "^1.2.51",
     "add": "^2.0.6",
     "astro": "5.16.6",
     "astro-icon": "^1.1.5",
@@ -23,6 +25,7 @@
     "sharp": "^0.34.5"
   },
   "devDependencies": {
+    "@vite-pwa/assets-generator": "^1.0.2",
     "prettier": "3.7.4"
   }
 }
