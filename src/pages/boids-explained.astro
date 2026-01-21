@@ -3,7 +3,6 @@ import BaseHead from "../components/BaseHead.astro";
 import Header from "../components/Header.astro";
 import BoidsCanvas from "../components/BoidsCanvas.astro";
 import { SITE_TITLE } from "../consts";
-import "katex/dist/katex.min.css";
 import { Prism } from "@astrojs/prism";
 import { Icon } from "astro-icon/components";
 
@@ -87,7 +86,7 @@ const CODE_UPDATE = `function update(boid, neighbors) {
 <html lang="en">
   <head>
     <BaseHead
-      title={`Boids`}
+      title={`Boids - ${SITE_TITLE}`}
       description="An interactive exploration of emergent flocking behavior through Craig Reynolds' Boids algorithm"
     />
     <style>
@@ -245,7 +244,7 @@ const CODE_UPDATE = `function update(boid, neighbors) {
 
       .jump-link {
         position: fixed;
-        top: 80px;
+        top: 2rem;
         right: 2rem;
         z-index: 100;
         padding: 0.75rem 1.5rem;
@@ -359,8 +358,8 @@ const CODE_UPDATE = `function update(boid, neighbors) {
         border-radius: 0;
 
         font-family:
-          "Geist Mono", ui-monospace, "SF Mono", SFMono-Regular, Menlo, Monaco,
-          Consolas, "Liberation Mono", "Courier New", monospace;
+          "Geist Mono", ui-monospace, "SF Mono", SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono",
+          "Courier New", monospace;
         font-size: 0.9rem;
         line-height: 1.65;
         letter-spacing: 0;
@@ -373,9 +372,7 @@ const CODE_UPDATE = `function update(boid, neighbors) {
       }
 
       /* Separation demo: slightly more opaque code background for readability. */
-      :global(
-        .content-wrapper section[data-section="separation"] pre.code-block
-      ) {
+      :global(.content-wrapper section[data-section="separation"] pre.code-block) {
         background: rgba(var(--gray-light), 0.26);
         border-color: rgba(var(--gray), 0.38);
       }
@@ -549,10 +546,8 @@ const CODE_UPDATE = `function update(boid, neighbors) {
           circle at 50% 50%,
           transparent 0,
           transparent var(--vision-radius),
-          var(--bg-overlay-light, rgba(0, 0, 0, 0.4))
-            calc(var(--vision-radius) - 18px),
-          var(--bg-overlay, rgba(0, 0, 0, 0.9))
-            calc(var(--vision-radius) + 200px),
+          var(--bg-overlay-light, rgba(0, 0, 0, 0.4)) calc(var(--vision-radius) - 18px),
+          var(--bg-overlay, rgba(0, 0, 0, 0.9)) calc(var(--vision-radius) + 200px),
           var(--bg-primary) 100%
         );
       }
@@ -694,10 +689,8 @@ const CODE_UPDATE = `function update(boid, neighbors) {
             circle at 50% 30%,
             transparent 0,
             transparent var(--vision-radius),
-            var(--bg-overlay-light, rgba(0, 0, 0, 0.4))
-              calc(var(--vision-radius) - 18px),
-            var(--bg-overlay, rgba(0, 0, 0, 0.9))
-              calc(var(--vision-radius) + 200px),
+            var(--bg-overlay-light, rgba(0, 0, 0, 0.4)) calc(var(--vision-radius) - 18px),
+            var(--bg-overlay, rgba(0, 0, 0, 0.9)) calc(var(--vision-radius) + 200px),
             var(--bg-primary) 100%
           );
         }
@@ -930,71 +923,6 @@ const CODE_UPDATE = `function update(boid, neighbors) {
         opacity: 0.6;
         margin-top: 1rem;
       }
-
-      /* Swiss Style Footer */
-      .swiss-footer {
-        padding: 4rem 2rem;
-        /* background: var(--bg-primary, #000); */
-        background: var(--bg-primary);
-        border-top: 1px solid rgba(var(--gray), 0.25);
-      }
-
-      .footer-grid {
-        max-width: 1200px;
-        margin: 0 auto;
-        display: grid;
-        grid-template-columns: repeat(4, 1fr);
-        gap: 3rem;
-      }
-
-      @media (max-width: 900px) {
-        .footer-grid {
-          grid-template-columns: repeat(2, 1fr);
-        }
-      }
-
-      @media (max-width: 500px) {
-        .footer-grid {
-          grid-template-columns: 1fr;
-        }
-      }
-
-      .footer-col h4 {
-        font-size: 0.7rem;
-        font-weight: 700;
-        text-transform: uppercase;
-        letter-spacing: 0.15em;
-        color: var(--accent, #ff3c00);
-        margin: 0 0 1rem 0;
-      }
-
-      .footer-col p {
-        font-size: 0.9rem;
-        line-height: 1.6;
-        opacity: 0.7;
-        margin: 0 0 0.5rem 0;
-      }
-
-      .footer-col a {
-        display: block;
-        font-size: 0.9rem;
-        color: var(--text-primary, #fff);
-        text-decoration: none;
-        opacity: 0.7;
-        margin-bottom: 0.5rem;
-        transition: opacity 0.2s ease;
-      }
-
-      .footer-col a:hover {
-        opacity: 1;
-        color: var(--accent, #ff3c00);
-      }
-
-      .footer-col .copyright {
-        margin-top: 1rem;
-        font-size: 0.75rem;
-        opacity: 0.5;
-      }
     </style>
   </head>
   <body>
@@ -1022,7 +950,7 @@ const CODE_UPDATE = `function update(boid, neighbors) {
 
     <div class="content-wrapper">
       <!-- Hero -->
-      <section class="hero">
+      <section class="hero" id="hero">
         <h1 class="hero-title">Boids</h1>
         <p class="hero-subtitle">Emergent Flocking Behavior</p>
         <a href="#intro" class="scroll-indicator">
@@ -1040,26 +968,22 @@ const CODE_UPDATE = `function update(boid, neighbors) {
           <h2 class="section-title">What Are Boids?</h2>
           <div class="section-text">
             <p>
-              In 1986, computer scientist <strong>Craig Reynolds</strong> developed
-              a groundbreaking artificial life simulation that would change how we
-              understand emergent behavior in complex systems.
+              In 1986, computer scientist <strong>Craig Reynolds</strong> developed a groundbreaking artificial life simulation
+              that would change how we understand emergent behavior in complex systems.
             </p>
             <p>
-              The word "boid" is simply a corruption of "bird" — these are
-              simulated bird-like agents that follow incredibly simple rules,
-              yet produce stunningly realistic flocking behavior without any
-              centralized control.
+              The word "boid" is simply a corruption of "bird" — these are simulated bird-like agents that follow
+              incredibly simple rules, yet produce stunningly realistic flocking behavior without any centralized
+              control.
             </p>
           </div>
           <blockquote class="quote-block">
             <!-- "The aggregate motion of the simulated flock is the result of the
             dense interaction of the relatively simple behaviors of the
             individual simulated birds." -->
-            ... thousands of fishes moved as a huge beast, piercing the water. They
-            appeared united, inexorably bound to a common fate. How comes this unity?
-            <div class="quote-author">
-              — Anonymous, 17th century (from Shaw)
-            </div>
+            ... thousands of fishes moved as a huge beast, piercing the water. They appeared united, inexorably bound to a
+            common fate. How comes this unity?
+            <div class="quote-author">— Anonymous, 17th century (from Shaw)</div>
           </blockquote>
         </div>
       </section>
@@ -1071,9 +995,8 @@ const CODE_UPDATE = `function update(boid, neighbors) {
           <h2 class="section-title">Three Simple Rules</h2>
           <div class="section-text">
             <p>
-              The magic of Boids lies in their simplicity. Each agent follows
-              only three behavioral rules, applied locally — there is no global
-              coordination, no leader, no predetermined patterns.
+              The magic of Boids lies in their simplicity. Each agent follows only three behavioral rules, applied
+              locally — there is no global coordination, no leader, no predetermined patterns.
             </p>
           </div>
 
@@ -1082,8 +1005,7 @@ const CODE_UPDATE = `function update(boid, neighbors) {
               <div class="rule-number">1</div>
               <h3 class="rule-title">Separation</h3>
               <p class="rule-desc">
-                Steer to avoid crowding local flockmates. Each boid maintains
-                personal space, preventing collisions.
+                Steer to avoid crowding local flockmates. Each boid maintains personal space, preventing collisions.
               </p>
             </div>
 
@@ -1091,8 +1013,8 @@ const CODE_UPDATE = `function update(boid, neighbors) {
               <div class="rule-number">2</div>
               <h3 class="rule-title">Alignment</h3>
               <p class="rule-desc">
-                Steer towards the average heading of local flockmates. Boids
-                tend to fly in the same direction as their neighbors.
+                Steer towards the average heading of local flockmates. Boids tend to fly in the same direction as their
+                neighbors.
               </p>
             </div>
 
@@ -1100,8 +1022,7 @@ const CODE_UPDATE = `function update(boid, neighbors) {
               <div class="rule-number">3</div>
               <h3 class="rule-title">Cohesion</h3>
               <p class="rule-desc">
-                Steer to move toward the average position of local flockmates.
-                This keeps the flock together as a group.
+                Steer to move toward the average position of local flockmates. This keeps the flock together as a group.
               </p>
             </div>
           </div>
@@ -1109,11 +1030,7 @@ const CODE_UPDATE = `function update(boid, neighbors) {
       </section>
 
       <!-- Separation Demo -->
-      <section
-        class="section demo-section"
-        data-section="separation"
-        data-behavior="separation"
-      >
+      <section class="section demo-section" data-section="separation" data-behavior="separation">
         <div class="demo-boids">
           <BoidsCanvas
             id="demo-separation"
@@ -1138,21 +1055,17 @@ const CODE_UPDATE = `function update(boid, neighbors) {
             maxTurnRate={0.06}
           />
         </div>
-        <div
-          class="demo-overlay demo-overlay--separation"
-          style="--vision-radius: 202px; --vision-feather: 192px;"
-        >
+        <div class="demo-overlay demo-overlay--separation" style="--vision-radius: 202px; --vision-feather: 192px;">
           <div class="section-content">
             <span class="section-number">03 — Don't Crash</span>
             <h2 class="section-title">Separation</h2>
             <div class="section-text">
               <p>
-                The separation rule is the most basic of the three. It simply
-                steers each boid to avoid collisions with nearby flockmates.
+                The separation rule is the most basic of the three. It simply steers each boid to avoid collisions with
+                nearby flockmates.
                 <!-- </p>
               <p> -->
-                With just separation enabled, a boid's only job is to avoid running
-                into its neighbors.
+                With just separation enabled, a boid's only job is to avoid running into its neighbors.
               </p>
             </div>
             <!-- <Prism class="code-block" lang="ts" code={CODE_SEPARATE} /> -->
@@ -1161,11 +1074,7 @@ const CODE_UPDATE = `function update(boid, neighbors) {
       </section>
 
       <!-- Alignment Demo -->
-      <section
-        class="section demo-section"
-        data-section="alignment"
-        data-behavior="alignment"
-      >
+      <section class="section demo-section" data-section="alignment" data-behavior="alignment">
         <div class="demo-boids">
           <BoidsCanvas
             id="demo-alignment"
@@ -1189,11 +1098,9 @@ const CODE_UPDATE = `function update(boid, neighbors) {
             <h2 class="section-title">Alignment</h2>
             <div class="section-text">
               <p>
-                Alignment is the second rule, and it's the most interesting.
-                Alignment steers each boid to match the average heading of its
-                neighbors. With just alignment enabled, the boids will start to
-                move in the same direction. They also do a much better job of
-                avoiding collisions.
+                Alignment is the second rule, and it's the most interesting. Alignment steers each boid to match the
+                average heading of its neighbors. With just alignment enabled, the boids will start to move in the same
+                direction. They also do a much better job of avoiding collisions.
               </p>
             </div>
             <!-- <Prism class="code-block" lang="ts" code={CODE_ALIGN} /> -->
@@ -1202,11 +1109,7 @@ const CODE_UPDATE = `function update(boid, neighbors) {
       </section>
 
       <!-- Cohesion Demo -->
-      <section
-        class="section demo-section"
-        data-section="cohesion"
-        data-behavior="cohesion"
-      >
+      <section class="section demo-section" data-section="cohesion" data-behavior="cohesion">
         <div class="demo-boids">
           <BoidsCanvas
             id="demo-cohesion"
@@ -1230,10 +1133,8 @@ const CODE_UPDATE = `function update(boid, neighbors) {
             <h2 class="section-title">Cohesion</h2>
             <div class="section-text">
               <p>
-                Here the boids actively seek the center of their local group.
-                Watch how they form tight clusters that split and merge
-                organically. Neighboring boids' colors blend together to
-                represent flock connections.
+                Here the boids actively seek the center of their local group. Watch how they form tight clusters that
+                split and merge organically. Neighboring boids' colors blend together to represent flock connections.
               </p>
             </div>
             <!-- <Prism class="code-block" lang="ts" code={CODE_COHERE} /> -->
@@ -1242,19 +1143,12 @@ const CODE_UPDATE = `function update(boid, neighbors) {
       </section>
 
       <!-- Zoom intro hint -->
-      <section
-        class="section zoom-section"
-        data-section="zoom"
-        data-behavior="perspective"
-      >
+      <section class="section zoom-section" data-section="zoom" data-behavior="perspective">
         <div class="section-content">
           <span class="section-number">06 — Perspective</span>
           <h2 class="section-title">A Boid's-Eye View</h2>
           <div class="section-text">
-            <p>
-              Keep scrolling to zoom in on a single boid and watch how it
-              perceives the world.
-            </p>
+            <p>Keep scrolling to zoom in on a single boid and watch how it perceives the world.</p>
           </div>
         </div>
       </section>
@@ -1266,14 +1160,8 @@ const CODE_UPDATE = `function update(boid, neighbors) {
         data-behavior="zooming"
         style="height: 500vh; position: relative;"
       >
-        <div
-          class="zoom-sticky-container"
-          style="position: sticky; top: 0; height: 100vh;"
-        >
-          <div
-            class="demo-boids"
-            style="position: absolute; top: 0; left: 0; width: 100%; height: 100%;"
-          >
+        <div class="zoom-sticky-container" style="position: sticky; top: 0; height: 100vh;">
+          <div class="demo-boids" style="position: absolute; top: 0; left: 0; width: 100%; height: 100%;">
             <BoidsCanvas
               id="demo-zoom"
               nBoids={400}
@@ -1303,10 +1191,7 @@ const CODE_UPDATE = `function update(boid, neighbors) {
               <p>The highlighted cone shows what this boid can see.</p>
             </div>
             <div class="zoom-blurb zoom-blurb-2" id="zoom-blurb-2">
-              <p>
-                The red circle is the minimum distance it will keep from other
-                boids.
-              </p>
+              <p>The red circle is the minimum distance it will keep from other boids.</p>
             </div>
             <div class="zoom-blurb zoom-blurb-3" id="zoom-blurb-3">
               <p>Each boid only knows about other neighboring boids.</p>
@@ -1325,16 +1210,14 @@ const CODE_UPDATE = `function update(boid, neighbors) {
           <h2 class="section-title">Making It Fast</h2>
           <div class="section-text">
             <p>
-              A naive implementation checks every boid against every other boid,
-              resulting in quadratic time complexity. With just 1,000 boids,
-              that's one million distance calculations per time step. As the
-              number of boids grows, this quickly becomes intractable.
+              A naive implementation checks every boid against every other boid, resulting in quadratic time complexity.
+              With just 1,000 boids, that's one million distance calculations per time step. As the number of boids
+              grows, this quickly becomes intractable.
             </p>
             <p>
-              The solution? A <strong>spatial hash grid</strong>. By dividing
-              space into cells, each boid only needs to check neighbors in
-              nearby cells. This reduces complexity dramatically, allowing
-              thousands of boids to flock smoothly at 60fps.
+              The solution? A <strong>spatial hash grid</strong>. By dividing space into cells, each boid only needs to
+              check neighbors in nearby cells. This reduces complexity dramatically, allowing thousands of boids to
+              flock smoothly at 60fps.
             </p>
           </div>
           <!-- <Prism class="code-block" lang="ts" code={CODE_SPATIAL_HASH} /> -->
@@ -1342,11 +1225,7 @@ const CODE_UPDATE = `function update(boid, neighbors) {
       </section>
 
       <!-- Putting It Together -->
-      <section
-        class="section demo-section"
-        data-section="together"
-        data-behavior="flocking"
-      >
+      <section class="section demo-section" data-section="together" data-behavior="flocking">
         <div class="demo-boids">
           <BoidsCanvas
             id="demo-together"
@@ -1370,9 +1249,8 @@ const CODE_UPDATE = `function update(boid, neighbors) {
             <h2 class="section-title">Putting It All Together</h2>
             <div class="section-text">
               <p>
-                Combining Separation, Alignment, and Cohesion produces a
-                complete system that mimics the complex, fluid motion of real
-                flocking behavior in nature.
+                Combining Separation, Alignment, and Cohesion produces a complete system that mimics the complex, fluid
+                motion of real flocking behavior in nature.
               </p>
             </div>
             <!-- <Prism class="code-block" lang="ts" code={CODE_UPDATE} /> -->
@@ -1386,31 +1264,28 @@ const CODE_UPDATE = `function update(boid, neighbors) {
           <span class="section-number">09 — Applications</span>
           <h2 class="section-title">Beyond Simulation</h2>
           <div class="section-text">
-            <p>
-              Boids aren't just pretty animations. The principles have been
-              applied to:
-            </p>
+            <p>Boids aren't just pretty animations. The principles have been applied to:</p>
           </div>
           <div class="rules-grid">
             <div class="rule-card">
               <h3 class="rule-title">Film & VFX</h3>
               <p class="rule-desc">
-                From the bat swarms in Batman Returns to stampedes in The Lion
-                King, Boids-based systems create realistic crowd movement.
+                From the bat swarms in Batman Returns to stampedes in The Lion King, Boids-based systems create
+                realistic crowd movement.
               </p>
             </div>
             <div class="rule-card">
               <h3 class="rule-title">Robotics</h3>
               <p class="rule-desc">
-                Drone swarms use similar algorithms for coordinated flight,
-                search-and-rescue operations, and agricultural monitoring.
+                Drone swarms use similar algorithms for coordinated flight, search-and-rescue operations, and
+                agricultural monitoring.
               </p>
             </div>
             <div class="rule-card">
               <h3 class="rule-title">Traffic Flow</h3>
               <p class="rule-desc">
-                Understanding emergent behavior helps design better traffic
-                systems and predict congestion patterns in urban environments.
+                Understanding emergent behavior helps design better traffic systems and predict congestion patterns in
+                urban environments.
               </p>
             </div>
           </div>
@@ -1423,12 +1298,8 @@ const CODE_UPDATE = `function update(boid, neighbors) {
           <span class="section-number">10 — Playground</span>
           <h2 class="section-title">Experiment</h2>
           <div class="playground-hint" id="playground-hint">
-            <span
-              >Click the menu in the corner to tweak boid simulation parameters.</span
-            >
-            <button class="hint-close" aria-label="Close hint"
-              ><Icon name="material-symbols:close" /></button
-            >
+            <span>Click the menu in the corner to tweak boid simulation parameters.</span>
+            <button class="hint-close" aria-label="Close hint"><Icon name="material-symbols:close" /></button>
           </div>
         </div>
         <div class="full-boids-container">
@@ -1459,19 +1330,24 @@ const CODE_UPDATE = `function update(boid, neighbors) {
       <script>
         import renderMathInElement from "katex/contrib/auto-render";
 
+        // Scroll past the header on page load so the hero is centered.
+        // Measures header height dynamically for durability as header changes.
+        const headerWrapper = document.querySelector(".header-wrapper");
+        if (headerWrapper) {
+          const headerHeight = headerWrapper.getBoundingClientRect().height;
+          // Use instant scroll (no smooth animation) so it happens before paint
+          window.scrollTo({ top: headerHeight, behavior: "instant" });
+        }
+
         const jumpLink = document.querySelector(".jump-link");
-        const backgroundBoids = document.querySelector(
-          ".boids-background",
-        ) as HTMLElement | null;
+        const backgroundBoids = document.querySelector(".boids-background") as HTMLElement | null;
 
         // Scroll-based updates
         function handleScroll() {
           const windowHeight = window.innerHeight;
 
           // Handle zoom section scroll
-          const zoomSection = document.querySelector(
-            '[data-section="boid-pov"]',
-          );
+          const zoomSection = document.querySelector('[data-section="boid-pov"]');
           if (zoomSection) {
             const rect = zoomSection.getBoundingClientRect();
             const sectionHeight = rect.height;
@@ -1479,24 +1355,17 @@ const CODE_UPDATE = `function update(boid, neighbors) {
             // End zooming when section bottom reaches top of viewport
             const scrollIntoSection = windowHeight - rect.top;
             const totalScrollDistance = sectionHeight + windowHeight;
-            const scrollProgress = Math.max(
-              0,
-              Math.min(1, scrollIntoSection / totalScrollDistance),
-            );
+            const scrollProgress = Math.max(0, Math.min(1, scrollIntoSection / totalScrollDistance));
 
             // Update zoom boids instance
-            if (
-              window.boidsInstances &&
-              window.boidsInstances.has("demo-zoom-container")
-            ) {
+            if (window.boidsInstances && window.boidsInstances.has("demo-zoom-container")) {
               const instance = window.boidsInstances.get("demo-zoom-container");
               if (instance) {
                 // Use smaller zoom range on mobile for better proportions
                 const isMobile = window.innerWidth <= 768;
                 const minZoom = isMobile ? 0.6 : 1;
                 const maxZoom = isMobile ? 3.5 : 6.5;
-                const targetZoom =
-                  minZoom + scrollProgress * (maxZoom - minZoom);
+                const targetZoom = minZoom + scrollProgress * (maxZoom - minZoom);
                 instance.setParams({ zoomLevel: targetZoom });
               }
             }
@@ -1540,13 +1409,8 @@ const CODE_UPDATE = `function update(boid, neighbors) {
           const isMobile = window.innerWidth <= 768;
 
           // Separation demo (Personal Space) - reduce zoom on mobile
-          if (
-            window.boidsInstances &&
-            window.boidsInstances.has("demo-separation-container")
-          ) {
-            const separationInstance = window.boidsInstances.get(
-              "demo-separation-container",
-            );
+          if (window.boidsInstances && window.boidsInstances.has("demo-separation-container")) {
+            const separationInstance = window.boidsInstances.get("demo-separation-container");
             if (separationInstance) {
               separationInstance.setParams({
                 zoomLevel: isMobile ? 3.5 : 5.0,
@@ -1555,13 +1419,8 @@ const CODE_UPDATE = `function update(boid, neighbors) {
           }
 
           // Playground - start more zoomed out on mobile
-          if (
-            window.boidsInstances &&
-            window.boidsInstances.has("full-boids-container")
-          ) {
-            const playgroundInstance = window.boidsInstances.get(
-              "full-boids-container",
-            );
+          if (window.boidsInstances && window.boidsInstances.has("full-boids-container")) {
+            const playgroundInstance = window.boidsInstances.get("full-boids-container");
             if (playgroundInstance) {
               playgroundInstance.setParams({
                 zoomLevel: isMobile ? 0.7 : 1.0,
@@ -1586,9 +1445,7 @@ const CODE_UPDATE = `function update(boid, neighbors) {
         try {
           const bgId = "bg-boids-container";
           const foregroundCanvases = Array.from(
-            document.querySelectorAll<HTMLElement>(
-              `.boids-container:not(#${bgId})`,
-            ),
+            document.querySelectorAll<HTMLElement>(`.boids-container:not(#${bgId})`),
           );
 
           if (backgroundBoids && foregroundCanvases.length > 0) {
@@ -1600,15 +1457,13 @@ const CODE_UPDATE = `function update(boid, neighbors) {
             const io = new IntersectionObserver(
               (entries) => {
                 for (const entry of entries) {
-                  const wasVisible =
-                    (entry.target as HTMLElement).dataset.bgHidesBg === "1";
+                  const wasVisible = (entry.target as HTMLElement).dataset.bgHidesBg === "1";
                   // Treat even small “slivers” (e.g. ~100px of a 100vh canvas) as visible,
                   // otherwise the fixed background layer can show behind/around the canvas.
                   const isVisible =
                     entry.isIntersecting &&
                     (entry.intersectionRatio >= 0.02 ||
-                      (entry.intersectionRect.height >= 16 &&
-                        entry.intersectionRect.width >= 16));
+                      (entry.intersectionRect.height >= 16 && entry.intersectionRect.width >= 16));
 
                   if (!wasVisible && isVisible) {
                     (entry.target as HTMLElement).dataset.bgHidesBg = "1";
@@ -1636,8 +1491,7 @@ const CODE_UPDATE = `function update(boid, neighbors) {
 
         // KaTeX: render any $...$ / $$...$$ math in this page
         try {
-          const root =
-            document.querySelector(".content-wrapper") ?? document.body;
+          const root = document.querySelector(".content-wrapper") ?? document.body;
           renderMathInElement(root as HTMLElement, {
             delimiters: [
               { left: "$$", right: "$$", display: true },
@@ -1654,8 +1508,7 @@ const CODE_UPDATE = `function update(boid, neighbors) {
         // Full Experience zoom-out animation
         // When the section first becomes visible, smoothly zoom out and stop following
         try {
-          const fullExperienceSection =
-            document.getElementById("full-experience");
+          const fullExperienceSection = document.getElementById("full-experience");
           let hasTriggeredZoomOut = false;
           let hasPrimedFullExperience = false;
           let zoomOutAnimationId: number | null = null;
@@ -1668,9 +1521,7 @@ const CODE_UPDATE = `function update(boid, neighbors) {
 
                   // Prime the playground instance as soon as it starts intersecting,
                   // but keep the canvas hidden until the section is meaningfully in view.
-                  const instance = window.boidsInstances?.get(
-                    "full-boids-container",
-                  );
+                  const instance = window.boidsInstances?.get("full-boids-container");
                   if (instance && !hasPrimedFullExperience) {
                     hasPrimedFullExperience = true;
 
@@ -1695,10 +1546,8 @@ const CODE_UPDATE = `function update(boid, neighbors) {
                     const startZoom = 5;
 
                     // Instantly position camera on the center boid (no smoothing)
-                    instance.cameraX =
-                      targetBoid.x - instance.width / (2 * startZoom);
-                    instance.cameraY =
-                      targetBoid.y - instance.height / (2 * startZoom);
+                    instance.cameraX = targetBoid.x - instance.width / (2 * startZoom);
+                    instance.cameraY = targetBoid.y - instance.height / (2 * startZoom);
                     instance.currentZoom = startZoom;
                     instance.targetZoom = startZoom;
 
@@ -1715,8 +1564,7 @@ const CODE_UPDATE = `function update(boid, neighbors) {
 
                   // Reveal once the section has a meaningful presence in the viewport.
                   // This prevents the “bottom edge peek” from showing a default state.
-                  const revealNow =
-                    entry.intersectionRect.height >= window.innerHeight * 0.25;
+                  const revealNow = entry.intersectionRect.height >= window.innerHeight * 0.25;
                   if (revealNow) {
                     fullExperienceSection.classList.add("is-active");
                   }
@@ -1749,10 +1597,8 @@ const CODE_UPDATE = `function update(boid, neighbors) {
                       const endZoom = 1;
 
                       // Instantly position camera on the center boid (no smoothing)
-                      instance.cameraX =
-                        targetBoid.x - instance.width / (2 * startZoom);
-                      instance.cameraY =
-                        targetBoid.y - instance.height / (2 * startZoom);
+                      instance.cameraX = targetBoid.x - instance.width / (2 * startZoom);
+                      instance.cameraY = targetBoid.y - instance.height / (2 * startZoom);
                       instance.currentZoom = startZoom;
                       instance.targetZoom = startZoom;
 
@@ -1768,8 +1614,7 @@ const CODE_UPDATE = `function update(boid, neighbors) {
                       const duration = 2000; // 2 seconds for smooth transition
 
                       // Ease-out cubic function for smooth deceleration
-                      const easeOutCubic = (t: number): number =>
-                        1 - Math.pow(1 - t, 3);
+                      const easeOutCubic = (t: number): number => 1 - Math.pow(1 - t, 3);
 
                       const animateZoomOut = (currentTime: number): void => {
                         const elapsed = currentTime - startTime;
@@ -1777,13 +1622,11 @@ const CODE_UPDATE = `function update(boid, neighbors) {
                         const easedProgress = easeOutCubic(progress);
 
                         // Interpolate zoom level
-                        const currentZoom =
-                          startZoom + (endZoom - startZoom) * easedProgress;
+                        const currentZoom = startZoom + (endZoom - startZoom) * easedProgress;
                         instance.setParams({ zoomLevel: currentZoom });
 
                         if (progress < 1) {
-                          zoomOutAnimationId =
-                            requestAnimationFrame(animateZoomOut);
+                          zoomOutAnimationId = requestAnimationFrame(animateZoomOut);
                         } else {
                           // Ensure final state is set
                           instance.setParams({
@@ -1795,8 +1638,7 @@ const CODE_UPDATE = `function update(boid, neighbors) {
                         }
                       };
 
-                      zoomOutAnimationId =
-                        requestAnimationFrame(animateZoomOut);
+                      zoomOutAnimationId = requestAnimationFrame(animateZoomOut);
                     }
                   }
                 }

@@ -4,6 +4,8 @@ export interface Props {
   class?: string;
   // Boid count
   nBoids?: number;
+  // Boid count for mobile?
+  nBoidsMobile?: number;
   // Behavior
   visualRange?: number;
   minDistance?: number;
@@ -80,6 +82,7 @@ const {
   showStats = false,
   showControls = false,
   enableScrollControl = false,
+  nBoidsMobile,
 } = Astro.props;
 
 const containerId = `${id}-container`;
@@ -124,6 +127,7 @@ const toggleBtnId = `${id}-toggle`;
     showStats,
     showControls,
     enableScrollControl,
+    nBoidsMobile,
   })}
 >
   <canvas id={canvasId}></canvas>
@@ -131,17 +135,8 @@ const toggleBtnId = `${id}-toggle`;
   {
     showControls && (
       <>
-        <button
-          id={toggleBtnId}
-          class="boids-toggle-btn"
-          aria-label="Toggle controls"
-        >
-          <svg
-            class="icon-menu"
-            xmlns="http://www.w3.org/2000/svg"
-            viewBox="0 -960 960 960"
-            fill="currentColor"
-          >
+        <button id={toggleBtnId} class="boids-toggle-btn" aria-label="Toggle controls">
+          <svg class="icon-menu" xmlns="http://www.w3.org/2000/svg" viewBox="0 -960 960 960" fill="currentColor">
             <path d="M120-240v-80h720v80H120Zm0-200v-80h720v80H120Zm0-200v-80h720v80H120Z" />
           </svg>
           <svg
@@ -161,12 +156,7 @@ const toggleBtnId = `${id}-toggle`;
             <h4>Simulation</h4>
             <div class="control-row">
               <button class="pause-btn">
-                <svg
-                  class="icon-pause"
-                  xmlns="http://www.w3.org/2000/svg"
-                  viewBox="0 -960 960 960"
-                  fill="currentColor"
-                >
+                <svg class="icon-pause" xmlns="http://www.w3.org/2000/svg" viewBox="0 -960 960 960" fill="currentColor">
                   <path d="M560-200v-560h160v560H560Zm-320 0v-560h160v560H240Z" />
                 </svg>
                 <svg
@@ -181,11 +171,7 @@ const toggleBtnId = `${id}-toggle`;
                 <span class="btn-text">Pause</span>
               </button>
               <button class="reset-btn">
-                <svg
-                  xmlns="http://www.w3.org/2000/svg"
-                  viewBox="0 -960 960 960"
-                  fill="currentColor"
-                >
+                <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 -960 960 960" fill="currentColor">
                   <path d="M480-160q-134 0-227-93t-93-227q0-134 93-227t227-93q69 0 132 28.5T720-690v-110h80v280H520v-80h168q-32-56-87.5-88T480-720q-100 0-170 70t-70 170q0 100 70 170t170 70q77 0 139-44t87-116h84q-28 106-114 173t-196 67Z" />
                 </svg>
                 <span class="btn-text">Reset</span>
@@ -193,14 +179,7 @@ const toggleBtnId = `${id}-toggle`;
             </div>
             <label>
               Boid Count: <span class="boid-count-value">{nBoids}</span>
-              <input
-                type="range"
-                class="boid-count"
-                min="10"
-                max="3000"
-                step="10"
-                value={nBoids}
-              />
+              <input type="range" class="boid-count" min="10" max="3000" step="10" value={nBoids} />
               <small>(reset required)</small>
             </label>
           </div>
@@ -208,96 +187,36 @@ const toggleBtnId = `${id}-toggle`;
           <div class="control-section">
             <h4>Behavior</h4>
             <label>
-              Visual Range:{" "}
-              <span class="visual-range-value">{visualRange}</span>
-              <input
-                type="range"
-                class="visual-range"
-                min="10"
-                max="200"
-                step="5"
-                value={visualRange}
-              />
+              Visual Range: <span class="visual-range-value">{visualRange}</span>
+              <input type="range" class="visual-range" min="10" max="200" step="5" value={visualRange} />
             </label>
             <label>
-              Min Distance:{" "}
-              <span class="min-distance-value">{minDistance}</span>
-              <input
-                type="range"
-                class="min-distance"
-                min="5"
-                max="100"
-                step="1"
-                value={minDistance}
-              />
+              Min Distance: <span class="min-distance-value">{minDistance}</span>
+              <input type="range" class="min-distance" min="5" max="100" step="1" value={minDistance} />
             </label>
             <label>
               Max Speed: <span class="max-speed-value">{maxSpeed}</span>
-              <input
-                type="range"
-                class="max-speed"
-                min="1"
-                max="5"
-                step="0.1"
-                value={maxSpeed}
-              />
+              <input type="range" class="max-speed" min="1" max="5" step="0.1" value={maxSpeed} />
             </label>
             <label>
               Alignment: <span class="alignment-value">{alignmentFactor}</span>
-              <input
-                type="range"
-                class="alignment"
-                min="0"
-                max="0.05"
-                step="0.001"
-                value={alignmentFactor}
-              />
+              <input type="range" class="alignment" min="0" max="0.05" step="0.001" value={alignmentFactor} />
             </label>
             <label>
               Cohesion: <span class="cohesion-value">{cohesionFactor}</span>
-              <input
-                type="range"
-                class="cohesion"
-                min="0"
-                max="0.05"
-                step="0.0005"
-                value={cohesionFactor}
-              />
+              <input type="range" class="cohesion" min="0" max="0.05" step="0.0005" value={cohesionFactor} />
             </label>
             <label>
-              Separation:{" "}
-              <span class="separation-value">{separationFactor}</span>
-              <input
-                type="range"
-                class="separation"
-                min="0"
-                max="0.05"
-                step="0.001"
-                value={separationFactor}
-              />
+              Separation: <span class="separation-value">{separationFactor}</span>
+              <input type="range" class="separation" min="0" max="0.05" step="0.001" value={separationFactor} />
             </label>
             <label>
               Wall Margin: <span class="wall-margin-value">{wallMargin}</span>
-              <input
-                type="range"
-                class="wall-margin"
-                min="20"
-                max="300"
-                step="10"
-                value={wallMargin}
-              />
+              <input type="range" class="wall-margin" min="20" max="300" step="10" value={wallMargin} />
             </label>
             <label>
-              Wall Turn Factor:{" "}
-              <span class="wall-turn-value">{wallTurnFactor}</span>
-              <input
-                type="range"
-                class="wall-turn"
-                min="0.05"
-                max="1"
-                step="0.05"
-                value={wallTurnFactor}
-              />
+              Wall Turn Factor: <span class="wall-turn-value">{wallTurnFactor}</span>
+              <input type="range" class="wall-turn" min="0.05" max="1" step="0.05" value={wallTurnFactor} />
             </label>
           </div>
 
@@ -305,67 +224,29 @@ const toggleBtnId = `${id}-toggle`;
             <h4>Steering</h4>
             <label>
               Min Speed: <span class="min-speed-value">{minSpeed}</span>
-              <input
-                type="range"
-                class="min-speed"
-                min="0"
-                max="5"
-                step="0.1"
-                value={minSpeed}
-              />
+              <input type="range" class="min-speed" min="0" max="5" step="0.1" value={minSpeed} />
             </label>
             <label>
-              Max Turn Rate:{" "}
-              <span class="max-turn-rate-value">{maxTurnRate}</span>
-              <input
-                type="range"
-                class="max-turn-rate"
-                min="0.01"
-                max="1.0"
-                step="0.01"
-                value={maxTurnRate}
-              />
+              Max Turn Rate: <span class="max-turn-rate-value">{maxTurnRate}</span>
+              <input type="range" class="max-turn-rate" min="0.01" max="1.0" step="0.01" value={maxTurnRate} />
               <small>Radians per frame</small>
             </label>
             <label>
               Field of View: <span class="fov-value">{fieldOfView}</span>&#176;
-              <input
-                type="range"
-                class="fov"
-                min="30"
-                max="360"
-                step="10"
-                value={fieldOfView}
-              />
+              <input type="range" class="fov" min="30" max="360" step="10" value={fieldOfView} />
             </label>
           </div>
 
           <div class="control-section">
             <h4>Cursor Magnetism</h4>
             <label>
-              Strength:{" "}
-              <span class="cursor-magnetism-value">{cursorMagnetism}</span>
-              <input
-                type="range"
-                class="cursor-magnetism"
-                min="-0.5"
-                max="0.5"
-                step="0.01"
-                value={cursorMagnetism}
-              />
+              Strength: <span class="cursor-magnetism-value">{cursorMagnetism}</span>
+              <input type="range" class="cursor-magnetism" min="-0.5" max="0.5" step="0.01" value={cursorMagnetism} />
               <small>Negative = repel</small>
             </label>
             <label>
-              Range:{" "}
-              <span class="magnetism-range-value">{cursorMagnetismRange}</span>
-              <input
-                type="range"
-                class="magnetism-range"
-                min="50"
-                max="500"
-                step="10"
-                value={cursorMagnetismRange}
-              />
+              Range: <span class="magnetism-range-value">{cursorMagnetismRange}</span>
+              <input type="range" class="magnetism-range" min="50" max="500" step="10" value={cursorMagnetismRange} />
             </label>
           </div>
 
@@ -388,26 +269,12 @@ const toggleBtnId = `${id}-toggle`;
                 </option>
               </select>
             </label>
-            <label
-              class="uniform-hue-control"
-              style={colorMode === "uniform" ? "" : "display: none;"}
-            >
+            <label class="uniform-hue-control" style={colorMode === "uniform" ? "" : "display: none;"}>
               Uniform Hue: <span class="uniform-hue-value">{uniformHue}</span>
-              <input
-                type="range"
-                class="uniform-hue"
-                min="0"
-                max="360"
-                step="1"
-                value={uniformHue}
-              />
+              <input type="range" class="uniform-hue" min="0" max="360" step="1" value={uniformHue} />
             </label>
-            <label
-              class="blend-speed-control"
-              style={colorMode === "flock" ? "" : "display: none;"}
-            >
-              Blend Speed:{" "}
-              <span class="color-blend-speed-value">{colorBlendSpeed}</span>
+            <label class="blend-speed-control" style={colorMode === "flock" ? "" : "display: none;"}>
+              Blend Speed: <span class="color-blend-speed-value">{colorBlendSpeed}</span>
               <input
                 type="range"
                 class="color-blend-speed"
@@ -423,26 +290,11 @@ const toggleBtnId = `${id}-toggle`;
             <h4>Rendering</h4>
             <label>
               Boid Size: <span class="boid-size-value">{boidSize}</span>
-              <input
-                type="range"
-                class="boid-size"
-                min="3"
-                max="30"
-                step="1"
-                value={boidSize}
-              />
+              <input type="range" class="boid-size" min="3" max="30" step="1" value={boidSize} />
             </label>
             <label>
-              Trail Length:{" "}
-              <span class="trail-length-value">{trailLength}</span>
-              <input
-                type="range"
-                class="trail-length"
-                min="0"
-                max="100"
-                step="5"
-                value={trailLength}
-              />
+              Trail Length: <span class="trail-length-value">{trailLength}</span>
+              <input type="range" class="trail-length" min="0" max="100" step="5" value={trailLength} />
             </label>
             <label class="checkbox-label">
               <input type="checkbox" class="draw-trail" checked={drawTrail} />
@@ -453,16 +305,8 @@ const toggleBtnId = `${id}-toggle`;
               Show Boid Vision
             </label>
             <label>
-              Vision Boid Index:{" "}
-              <span class="vision-boid-value">{visionBoidIndex}</span>
-              <input
-                type="range"
-                class="vision-boid"
-                min="0"
-                max={nBoids - 1}
-                step="1"
-                value={visionBoidIndex}
-              />
+              Vision Boid Index: <span class="vision-boid-value">{visionBoidIndex}</span>
+              <input type="range" class="vision-boid" min="0" max={nBoids - 1} step="1" value={visionBoidIndex} />
             </label>
           </div>
 
@@ -474,26 +318,11 @@ const toggleBtnId = `${id}-toggle`;
             </label>
             <label>
               Zoom Level: <span class="zoom-level-value">{zoomLevel}</span>
-              <input
-                type="range"
-                class="zoom-level"
-                min="0.5"
-                max="5"
-                step="0.1"
-                value={zoomLevel}
-              />
+              <input type="range" class="zoom-level" min="0.5" max="5" step="0.1" value={zoomLevel} />
             </label>
             <label>
-              Camera Smoothing:{" "}
-              <span class="camera-smoothing-value">{cameraSmoothing}</span>
-              <input
-                type="range"
-                class="camera-smoothing"
-                min="0.01"
-                max="1.0"
-                step="0.01"
-                value={cameraSmoothing}
-              />
+              Camera Smoothing: <span class="camera-smoothing-value">{cameraSmoothing}</span>
+              <input type="range" class="camera-smoothing" min="0.01" max="1.0" step="0.01" value={cameraSmoothing} />
             </label>
           </div>
 
@@ -504,23 +333,12 @@ const toggleBtnId = `${id}-toggle`;
               Show Stats
             </label>
             <label class="checkbox-label">
-              <input
-                type="checkbox"
-                class="enable-fps-limit"
-                checked={enableFpsLimit}
-              />
+              <input type="checkbox" class="enable-fps-limit" checked={enableFpsLimit} />
               Enable FPS Limit
             </label>
             <label>
               FPS Limit: <span class="fps-limit-value">{fpsLimit}</span>
-              <input
-                type="range"
-                class="fps-limit"
-                min="10"
-                max="144"
-                step="1"
-                value={fpsLimit}
-              />
+              <input type="range" class="fps-limit" min="10" max="144" step="1" value={fpsLimit} />
             </label>
           </div>
         </div>
@@ -947,13 +765,7 @@ const toggleBtnId = `${id}-toggle`;
     trailIndex: number = 0; // next write index
     trailCount: number = 0; // number of valid points
 
-    constructor(
-      x: number,
-      y: number,
-      dx: number,
-      dy: number,
-      trailLength: number,
-    ) {
+    constructor(x: number, y: number, dx: number, dy: number, trailLength: number) {
       this.x = x;
       this.y = y;
       this.dx = dx;
@@ -991,8 +803,7 @@ const toggleBtnId = `${id}-toggle`;
 
       if (copyCount > 0 && nextLen > 0 && prevLen > 0) {
         // Copy the newest `copyCount` points into [0..copyCount)
-        const startOldest =
-          (this.trailIndex - this.trailCount + prevLen) % prevLen;
+        const startOldest = (this.trailIndex - this.trailCount + prevLen) % prevLen;
         const dropOldest = this.trailCount - copyCount;
         for (let i = 0; i < copyCount; i++) {
           const oldIdx = (startOldest + dropOldest + i) % prevLen;
@@ -1058,12 +869,7 @@ const toggleBtnId = `${id}-toggle`;
       this.invCellSize = 1 / size;
     }
 
-    forEachNearby(
-      x: number,
-      y: number,
-      range: number,
-      cb: (boid: Boid) => void,
-    ): void {
+    forEachNearby(x: number, y: number, range: number, cb: (boid: Boid) => void): void {
       const cellRadius = Math.ceil(range * this.invCellSize);
       const centerXi = Math.floor(x * this.invCellSize);
       const centerYi = Math.floor(y * this.invCellSize);
@@ -1102,16 +908,13 @@ const toggleBtnId = `${id}-toggle`;
 
     getFPS(): number {
       if (this.frameTimes.length === 0) return 0;
-      const avgFrameTime =
-        this.frameTimes.reduce((a, b) => a + b, 0) / this.frameTimes.length;
+      const avgFrameTime = this.frameTimes.reduce((a, b) => a + b, 0) / this.frameTimes.length;
       return 1000 / avgFrameTime;
     }
 
     getFrameTime(): number {
       if (this.frameTimes.length === 0) return 0;
-      return (
-        this.frameTimes.reduce((a, b) => a + b, 0) / this.frameTimes.length
-      );
+      return this.frameTimes.reduce((a, b) => a + b, 0) / this.frameTimes.length;
     }
   }
 
@@ -1120,6 +923,7 @@ const toggleBtnId = `${id}-toggle`;
   // ============================================
   interface BoidsConfig {
     nBoids: number;
+    nBoidsMobile?: number;
     visualRange: number;
     minDistance: number;
     maxSpeed: number;
@@ -1173,6 +977,7 @@ const toggleBtnId = `${id}-toggle`;
     targetZoom = 1.0;
     animationId: number | null = null;
     isVisible = true;
+    nBoidsMobile = 0;
 
     // Mobile detection state
     isMobile = false;
@@ -1251,8 +1056,7 @@ const toggleBtnId = `${id}-toggle`;
             if (otherH < avgH) otherH += 360;
             else avgH += 360;
           }
-          this.accFlockAvgH =
-            (avgH * this.accFlockCount + otherH) / (this.accFlockCount + 1);
+          this.accFlockAvgH = (avgH * this.accFlockCount + otherH) / (this.accFlockCount + 1);
           this.accFlockCount++;
         }
       }
@@ -1275,7 +1079,9 @@ const toggleBtnId = `${id}-toggle`;
       this.isMobile = window.innerWidth < 768;
       if (this.isMobile) {
         // Enforce reduced boid count on mobile if high
-        if (this.params.nBoids > 100) {
+        if (this.params.nBoidsMobile) {
+          this.params.nBoids = this.params.nBoidsMobile;
+        } else if (this.params.nBoids > 100) {
           const reduced = Math.min(150, Math.floor(this.params.nBoids * 0.35));
           this.params.nBoids = Math.max(50, reduced);
         }
@@ -1326,12 +1132,7 @@ const toggleBtnId = `${id}-toggle`;
       const updatePointer = (clientX: number, clientY: number) => {
         const rect = this.canvas.getBoundingClientRect();
         // Only update if pointer is within canvas bounds
-        if (
-          clientX >= rect.left &&
-          clientX <= rect.right &&
-          clientY >= rect.top &&
-          clientY <= rect.bottom
-        ) {
+        if (clientX >= rect.left && clientX <= rect.right && clientY >= rect.top && clientY <= rect.bottom) {
           this.mouseX = clientX - rect.left;
           this.mouseY = clientY - rect.top;
           this.isCursorActive = true;
@@ -1442,15 +1243,9 @@ const toggleBtnId = `${id}-toggle`;
       const currentHeading = Math.atan2(origDy, origDx);
       const desiredHeading = Math.atan2(boid.dy, boid.dx);
       let angleDiff = this.normalizeAngle(desiredHeading - currentHeading);
-      const clampedDiff = Math.max(
-        -this.params.maxTurnRate,
-        Math.min(this.params.maxTurnRate, angleDiff),
-      );
+      const clampedDiff = Math.max(-this.params.maxTurnRate, Math.min(this.params.maxTurnRate, angleDiff));
       const newHeading = currentHeading + clampedDiff;
-      const speed = Math.max(
-        this.magnitude(boid.dx, boid.dy),
-        this.params.minSpeed,
-      );
+      const speed = Math.max(this.magnitude(boid.dx, boid.dy), this.params.minSpeed);
       boid.dx = Math.cos(newHeading) * speed;
       boid.dy = Math.sin(newHeading) * speed;
     }
@@ -1481,11 +1276,9 @@ const toggleBtnId = `${id}-toggle`;
       const margin = this.params.wallMargin;
       const turnFactor = this.params.wallTurnFactor;
       if (boid.x < margin) boid.dx += turnFactor * (1 - boid.x / margin);
-      if (boid.x > this.width - margin)
-        boid.dx -= turnFactor * (1 - (this.width - boid.x) / margin);
+      if (boid.x > this.width - margin) boid.dx -= turnFactor * (1 - (this.width - boid.x) / margin);
       if (boid.y < margin) boid.dy += turnFactor * (1 - boid.y / margin);
-      if (boid.y > this.height - margin)
-        boid.dy -= turnFactor * (1 - (this.height - boid.y) / margin);
+      if (boid.y > this.height - margin) boid.dy -= turnFactor * (1 - (this.height - boid.y) / margin);
     }
 
     attractToCursor(boid: Boid): void {
@@ -1496,9 +1289,7 @@ const toggleBtnId = `${id}-toggle`;
       const dy = worldMouseY - boid.y;
       const dist = Math.sqrt(dx * dx + dy * dy);
       if (dist < this.params.cursorMagnetismRange && dist > 0) {
-        const strength =
-          this.params.cursorMagnetism *
-          (1 - dist / this.params.cursorMagnetismRange);
+        const strength = this.params.cursorMagnetism * (1 - dist / this.params.cursorMagnetismRange);
         boid.dx += (dx / dist) * strength;
         boid.dy += (dy / dist) * strength;
       }
@@ -1525,8 +1316,7 @@ const toggleBtnId = `${id}-toggle`;
             const current = boid.currentColor.h;
             // Move along the shortest arc on the hue circle.
             const delta = ((((target - current) % 360) + 540) % 360) - 180;
-            boid.currentColor.h =
-              (current + delta * this.params.colorBlendSpeed + 360) % 360;
+            boid.currentColor.h = (current + delta * this.params.colorBlendSpeed + 360) % 360;
             boid.currentColor.s = 75;
             boid.currentColor.l = 55;
           }
@@ -1546,8 +1336,7 @@ const toggleBtnId = `${id}-toggle`;
 
     drawBoid(boid: Boid, index: number): void {
       const size = this.params.boidSize;
-      const isVisionBoid =
-        this.params.showVision && index === this.params.visionBoidIndex;
+      const isVisionBoid = this.params.showVision && index === this.params.visionBoidIndex;
 
       if (isVisionBoid) {
         const boidHeading = Math.atan2(boid.dy, boid.dx);
@@ -1560,13 +1349,7 @@ const toggleBtnId = `${id}-toggle`;
           this.ctx.fillStyle = "rgba(85, 140, 244, 0.1)";
           this.ctx.beginPath();
           this.ctx.moveTo(boid.x, boid.y);
-          this.ctx.arc(
-            boid.x,
-            boid.y,
-            this.params.visualRange,
-            boidHeading - halfFov,
-            boidHeading + halfFov,
-          );
+          this.ctx.arc(boid.x, boid.y, this.params.visualRange, boidHeading - halfFov, boidHeading + halfFov);
           this.ctx.closePath();
           this.ctx.fill();
           this.ctx.stroke();
@@ -1576,13 +1359,7 @@ const toggleBtnId = `${id}-toggle`;
             this.ctx.fillStyle = "rgba(50, 50, 50, 0.05)";
             this.ctx.beginPath();
             this.ctx.moveTo(boid.x, boid.y);
-            this.ctx.arc(
-              boid.x,
-              boid.y,
-              this.params.visualRange,
-              boidHeading + halfFov,
-              boidHeading - halfFov,
-            );
+            this.ctx.arc(boid.x, boid.y, this.params.visualRange, boidHeading + halfFov, boidHeading - halfFov);
             this.ctx.closePath();
             this.ctx.fill();
             this.ctx.stroke();
@@ -1598,33 +1375,26 @@ const toggleBtnId = `${id}-toggle`;
 
         const visualRange2 = this.params.visualRange * this.params.visualRange;
         const minDistance2 = this.params.minDistance * this.params.minDistance;
-        this.spatialGrid.forEachNearby(
-          boid.x,
-          boid.y,
-          this.params.visualRange,
-          (other) => {
-            if (other === boid) return;
-            const dx = other.x - boid.x;
-            const dy = other.y - boid.y;
-            const dist2 = dx * dx + dy * dy;
-            if (dist2 > visualRange2) return;
+        this.spatialGrid.forEachNearby(boid.x, boid.y, this.params.visualRange, (other) => {
+          if (other === boid) return;
+          const dx = other.x - boid.x;
+          const dy = other.y - boid.y;
+          const dist2 = dx * dx + dy * dy;
+          if (dist2 > visualRange2) return;
 
-            const inFov = this.isInFieldOfView(boid, other);
-            if (dist2 <= minDistance2) {
-              this.ctx.strokeStyle = inFov
-                ? "rgba(244, 85, 85, 0.8)"
-                : "rgba(244, 85, 85, 0.4)";
-            } else if (inFov) {
-              this.ctx.strokeStyle = "rgba(85, 244, 140, 0.5)";
-            } else {
-              this.ctx.strokeStyle = "rgba(100, 100, 100, 0.3)";
-            }
-            this.ctx.beginPath();
-            this.ctx.moveTo(boid.x, boid.y);
-            this.ctx.lineTo(other.x, other.y);
-            this.ctx.stroke();
-          },
-        );
+          const inFov = this.isInFieldOfView(boid, other);
+          if (dist2 <= minDistance2) {
+            this.ctx.strokeStyle = inFov ? "rgba(244, 85, 85, 0.8)" : "rgba(244, 85, 85, 0.4)";
+          } else if (inFov) {
+            this.ctx.strokeStyle = "rgba(85, 244, 140, 0.5)";
+          } else {
+            this.ctx.strokeStyle = "rgba(100, 100, 100, 0.3)";
+          }
+          this.ctx.beginPath();
+          this.ctx.moveTo(boid.x, boid.y);
+          this.ctx.lineTo(other.x, other.y);
+          this.ctx.stroke();
+        });
       }
 
       const boidColor = isVisionBoid ? "#f4a855" : this.getBoidColor(boid);
@@ -1657,9 +1427,7 @@ const toggleBtnId = `${id}-toggle`;
       this.ctx.fill();
 
       if (this.params.drawTrail && boid.trailCount > 1) {
-        this.ctx.strokeStyle = isVisionBoid
-          ? "rgba(244, 168, 85, 0.4)"
-          : this.getBoidTrailColor(boid);
+        this.ctx.strokeStyle = isVisionBoid ? "rgba(244, 168, 85, 0.4)" : this.getBoidTrailColor(boid);
         const len = boid.trailX.length;
         if (len === 0) return;
         const start = (boid.trailIndex - boid.trailCount + len) % len;
@@ -1754,12 +1522,7 @@ const toggleBtnId = `${id}-toggle`;
         this.accFlockAvgH = boid.currentColor.h;
         this.accFlockCount = 1;
 
-        this.spatialGrid.forEachNearby(
-          boid.x,
-          boid.y,
-          visualRange,
-          this.accumulateNeighbor,
-        );
+        this.spatialGrid.forEachNearby(boid.x, boid.y, visualRange, this.accumulateNeighbor);
 
         // Separation
         boid.dx += this.accSepX * separationFactor;
@@ -1828,23 +1591,15 @@ const toggleBtnId = `${id}-toggle`;
 
       if (this.params.followBoid && this.boids[this.params.visionBoidIndex]) {
         const targetBoid = this.boids[this.params.visionBoidIndex];
-        const targetCameraX =
-          targetBoid.x - this.width / (2 * this.currentZoom);
-        const targetCameraY =
-          targetBoid.y - this.height / (2 * this.currentZoom);
-        this.cameraX +=
-          (targetCameraX - this.cameraX) * this.params.cameraSmoothing;
-        this.cameraY +=
-          (targetCameraY - this.cameraY) * this.params.cameraSmoothing;
+        const targetCameraX = targetBoid.x - this.width / (2 * this.currentZoom);
+        const targetCameraY = targetBoid.y - this.height / (2 * this.currentZoom);
+        this.cameraX += (targetCameraX - this.cameraX) * this.params.cameraSmoothing;
+        this.cameraY += (targetCameraY - this.cameraY) * this.params.cameraSmoothing;
       } else {
-        const targetCameraX =
-          (this.width * (this.currentZoom - 1)) / (2 * this.currentZoom);
-        const targetCameraY =
-          (this.height * (this.currentZoom - 1)) / (2 * this.currentZoom);
-        this.cameraX +=
-          (targetCameraX - this.cameraX) * this.params.cameraSmoothing;
-        this.cameraY +=
-          (targetCameraY - this.cameraY) * this.params.cameraSmoothing;
+        const targetCameraX = (this.width * (this.currentZoom - 1)) / (2 * this.currentZoom);
+        const targetCameraY = (this.height * (this.currentZoom - 1)) / (2 * this.currentZoom);
+        this.cameraX += (targetCameraX - this.cameraX) * this.params.cameraSmoothing;
+        this.cameraY += (targetCameraY - this.cameraY) * this.params.cameraSmoothing;
       }
 
       this.ctx.scale(this.currentZoom, this.currentZoom);
@@ -1895,12 +1650,8 @@ const toggleBtnId = `${id}-toggle`;
     }
 
     setupControls(): void {
-      const panel = this.container.querySelector(
-        ".boids-controls",
-      ) as HTMLElement;
-      const toggleBtn = this.container.querySelector(
-        ".boids-toggle-btn",
-      ) as HTMLElement;
+      const panel = this.container.querySelector(".boids-controls") as HTMLElement;
+      const toggleBtn = this.container.querySelector(".boids-toggle-btn") as HTMLElement;
 
       if (!panel || !toggleBtn) return;
 
@@ -1913,23 +1664,13 @@ const toggleBtnId = `${id}-toggle`;
         if (closeIcon) closeIcon.style.display = isCollapsed ? "none" : "block";
       });
 
-      const bindSlider = (
-        className: string,
-        key: keyof BoidsConfig,
-        transform?: (v: number) => number,
-      ): void => {
-        const slider = this.container.querySelector(
-          `.${className}`,
-        ) as HTMLInputElement;
-        const valueSpan = this.container.querySelector(
-          `.${className}-value`,
-        ) as HTMLElement;
+      const bindSlider = (className: string, key: keyof BoidsConfig, transform?: (v: number) => number): void => {
+        const slider = this.container.querySelector(`.${className}`) as HTMLInputElement;
+        const valueSpan = this.container.querySelector(`.${className}-value`) as HTMLElement;
         if (!slider || !valueSpan) return;
 
         slider.addEventListener("input", () => {
-          const value = transform
-            ? transform(parseFloat(slider.value))
-            : parseFloat(slider.value);
+          const value = transform ? transform(parseFloat(slider.value)) : parseFloat(slider.value);
           (this.params as any)[key] = value;
           valueSpan.textContent = String(value);
           if (key === "zoomLevel") {
@@ -1938,13 +1679,8 @@ const toggleBtnId = `${id}-toggle`;
         });
       };
 
-      const bindCheckbox = (
-        className: string,
-        key: keyof BoidsConfig,
-      ): void => {
-        const checkbox = this.container.querySelector(
-          `.${className}`,
-        ) as HTMLInputElement;
+      const bindCheckbox = (className: string, key: keyof BoidsConfig): void => {
+        const checkbox = this.container.querySelector(`.${className}`) as HTMLInputElement;
         if (!checkbox) return;
         checkbox.addEventListener("change", () => {
           (this.params as any)[key] = checkbox.checked;
@@ -1954,21 +1690,13 @@ const toggleBtnId = `${id}-toggle`;
       bindSlider("visual-range", "visualRange");
       bindSlider("min-distance", "minDistance");
       bindSlider("max-speed", "maxSpeed", (v) => parseFloat(v.toFixed(4)));
-      bindSlider("alignment", "alignmentFactor", (v) =>
-        parseFloat(v.toFixed(4)),
-      );
+      bindSlider("alignment", "alignmentFactor", (v) => parseFloat(v.toFixed(4)));
       bindSlider("cohesion", "cohesionFactor", (v) => parseFloat(v.toFixed(4)));
-      bindSlider("separation", "separationFactor", (v) =>
-        parseFloat(v.toFixed(4)),
-      );
+      bindSlider("separation", "separationFactor", (v) => parseFloat(v.toFixed(4)));
       bindSlider("wall-margin", "wallMargin");
-      bindSlider("wall-turn", "wallTurnFactor", (v) =>
-        parseFloat(v.toFixed(4)),
-      );
+      bindSlider("wall-turn", "wallTurnFactor", (v) => parseFloat(v.toFixed(4)));
       bindSlider("min-speed", "minSpeed", (v) => parseFloat(v.toFixed(4)));
-      bindSlider("max-turn-rate", "maxTurnRate", (v) =>
-        parseFloat(v.toFixed(4)),
-      );
+      bindSlider("max-turn-rate", "maxTurnRate", (v) => parseFloat(v.toFixed(4)));
       bindSlider("fov", "fieldOfView");
       bindSlider("boid-size", "boidSize");
       bindSlider("trail-length", "trailLength", (v) => {
@@ -1981,17 +1709,11 @@ const toggleBtnId = `${id}-toggle`;
       bindSlider("fps-limit", "fpsLimit");
       bindSlider("vision-boid", "visionBoidIndex");
       bindSlider("zoom-level", "zoomLevel", (v) => parseFloat(v.toFixed(1)));
-      bindSlider("camera-smoothing", "cameraSmoothing", (v) =>
-        parseFloat(v.toFixed(2)),
-      );
-      bindSlider("cursor-magnetism", "cursorMagnetism", (v) =>
-        parseFloat(v.toFixed(2)),
-      );
+      bindSlider("camera-smoothing", "cameraSmoothing", (v) => parseFloat(v.toFixed(2)));
+      bindSlider("cursor-magnetism", "cursorMagnetism", (v) => parseFloat(v.toFixed(2)));
       bindSlider("magnetism-range", "cursorMagnetismRange");
       bindSlider("uniform-hue", "uniformHue");
-      bindSlider("color-blend-speed", "colorBlendSpeed", (v) =>
-        parseFloat(v.toFixed(3)),
-      );
+      bindSlider("color-blend-speed", "colorBlendSpeed", (v) => parseFloat(v.toFixed(3)));
 
       bindCheckbox("draw-trail", "drawTrail");
       bindCheckbox("show-vision", "showVision");
@@ -1999,62 +1721,40 @@ const toggleBtnId = `${id}-toggle`;
       bindCheckbox("show-stats", "showStats");
       bindCheckbox("follow-boid", "followBoid");
 
-      const colorModeSelect = this.container.querySelector(
-        ".color-mode",
-      ) as HTMLSelectElement;
+      const colorModeSelect = this.container.querySelector(".color-mode") as HTMLSelectElement;
       if (colorModeSelect) {
         colorModeSelect.addEventListener("change", () => {
-          this.params.colorMode =
-            colorModeSelect.value as BoidsConfig["colorMode"];
-          const uniformHueControl = this.container.querySelector(
-            ".uniform-hue-control",
-          ) as HTMLElement;
-          const blendSpeedControl = this.container.querySelector(
-            ".blend-speed-control",
-          ) as HTMLElement;
+          this.params.colorMode = colorModeSelect.value as BoidsConfig["colorMode"];
+          const uniformHueControl = this.container.querySelector(".uniform-hue-control") as HTMLElement;
+          const blendSpeedControl = this.container.querySelector(".blend-speed-control") as HTMLElement;
           if (uniformHueControl)
-            uniformHueControl.style.display =
-              this.params.colorMode === "uniform" ? "block" : "none";
-          if (blendSpeedControl)
-            blendSpeedControl.style.display =
-              this.params.colorMode === "flock" ? "block" : "none";
+            uniformHueControl.style.display = this.params.colorMode === "uniform" ? "block" : "none";
+          if (blendSpeedControl) blendSpeedControl.style.display = this.params.colorMode === "flock" ? "block" : "none";
         });
       }
 
-      const pauseBtn = this.container.querySelector(
-        ".pause-btn",
-      ) as HTMLElement;
+      const pauseBtn = this.container.querySelector(".pause-btn") as HTMLElement;
       if (pauseBtn) {
         pauseBtn.addEventListener("click", () => {
           this.isPaused = !this.isPaused;
-          const pauseIcon = pauseBtn.querySelector(
-            ".icon-pause",
-          ) as HTMLElement;
+          const pauseIcon = pauseBtn.querySelector(".icon-pause") as HTMLElement;
           const playIcon = pauseBtn.querySelector(".icon-play") as HTMLElement;
           const btnText = pauseBtn.querySelector(".btn-text") as HTMLElement;
-          if (pauseIcon)
-            pauseIcon.style.display = this.isPaused ? "none" : "block";
-          if (playIcon)
-            playIcon.style.display = this.isPaused ? "block" : "none";
+          if (pauseIcon) pauseIcon.style.display = this.isPaused ? "none" : "block";
+          if (playIcon) playIcon.style.display = this.isPaused ? "block" : "none";
           if (btnText) btnText.textContent = this.isPaused ? "Resume" : "Pause";
         });
       }
 
-      const resetBtn = this.container.querySelector(
-        ".reset-btn",
-      ) as HTMLElement;
+      const resetBtn = this.container.querySelector(".reset-btn") as HTMLElement;
       if (resetBtn) {
         resetBtn.addEventListener("click", () => {
           this.initBoids();
         });
       }
 
-      const boidCountInput = this.container.querySelector(
-        ".boid-count",
-      ) as HTMLInputElement;
-      const boidCountValue = this.container.querySelector(
-        ".boid-count-value",
-      ) as HTMLElement;
+      const boidCountInput = this.container.querySelector(".boid-count") as HTMLInputElement;
+      const boidCountValue = this.container.querySelector(".boid-count-value") as HTMLElement;
       if (boidCountInput && boidCountValue) {
         boidCountInput.addEventListener("input", () => {
           this.params.nBoids = parseInt(boidCountInput.value);

@@ -5,3 +5,20 @@ coverage
 # Don't even know why prettier was checking images...
 *.jpg
 *.png
+
+# Don't automatically format node_modules
+node_modules
+
+# Don't automatically format markdown files (sometimes it messes up the math equations)
+*.md
+*.mdx
+
+# I don't think it would try to do this but whatever
+*.typ
+*.tex
+*.pdf
+*.woff
+*.woff2
+*.ttf
+*.ico
+*.svg

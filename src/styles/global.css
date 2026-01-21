@@ -4,9 +4,6 @@
   License MIT: https://github.com/HermanMartinus/bearblog/blob/master/LICENSE.md
  */
 
-/* Custom fonts: */
-@import url("./fonts.css");
-
 /* ============================================
    CSS CUSTOM PROPERTIES (VARIABLES)
    ============================================ */
@@ -15,22 +12,19 @@
 :root {
   color-scheme: light dark;
   /* Accent colors */
-  /* --accent: black;
-  --accent-dark: black;
-  --accent-light: black; */
-  --accent: #ff3c00;
-  --accent-dark: #cc3000;
-  --accent-light: #ffeade;
+  --accent: #ff0000;
+  --accent-dark: #cc0000;
+  --accent-light: #ff4444;
 
   /* Grayscale colors (RGB values for alpha compositing) */
-  --black: 15, 18, 25;
-  --gray: 96, 115, 159;
-  --gray-light: 229, 233, 240;
-  --gray-dark: 34, 41, 57;
+  --black: 0, 0, 0;
+  --gray: 96, 96, 96;
+  --gray-light: 229, 229, 229;
+  --gray-dark: 34, 34, 34;
 
   /* Background colors */
   --bg-primary: #ffffff;
-  --bg-secondary: #f8f9fa;
+  --bg-secondary: #f9f9f9;
 
   /* Text colors */
   --text-primary: rgb(var(--gray-dark));
@@ -40,17 +34,22 @@
   --gray-gradient: rgba(var(--gray-light), 50%), #fff;
 }
 
+/* For all modern browsers including Chrome, Safari, Edge, and Opera */
+::selection {
+  background-color: var(--accent);
+  color: white;
+}
+
+/* Code for Firefox */
+::-moz-selection {
+  background-color: var(--accent);
+  color: white;
+}
+
 /* Dark mode */
 @media (prefers-color-scheme: dark) {
   :root {
     color-scheme: dark;
-    /* Accent colors - slightly brighter for dark mode */
-    /* --accent: white;
-    --accent-dark: white;
-    --accent-light: white; */
-    --accent: #ff3c00;
-    --accent-dark: #cc3000;
-    --accent-light: #4a2917;
 
     /* Grayscale colors (RGB values for alpha compositing) */
     --black: 240, 240, 245;
@@ -60,7 +59,7 @@
 
     /* Background colors */
     --bg-primary: #000;
-    --bg-secondary: #242831;
+    --bg-secondary: #242424;
 
     /* Text colors */
     --text-primary: rgb(var(--gray-dark));
@@ -76,8 +75,18 @@
    ============================================ */
 
 body {
-  font-family:
-    "Neue Montreal", "Helvetica Neue", "Helvetica", "Arial", sans-serif;
+  font-family: "Neue Montreal", "Helvetica Neue", "Helvetica", "Arial", sans-serif;
+  /* font-family: "Helvetica Neue", "Helvetica", "Arial", sans-serif; */
+  /* font-family: "Optician Sans", "Helvetica", "Arial", sans-serif; */
+  /* font-family: "Space Grotesk", "Helvetica", "Arial", sans-serif; */
+  /* font-family: "Futura", "Helvetica", "Arial", sans-serif; */
+
+  /* font-family: "ETBookOT", "Helvetica", "Arial", sans-serif; */
+  /* font-family: "SF Pro", "Helvetica", "Arial", sans-serif; */
+  /* font-family:'Courier New', Courier, monospace; */
+  /* font-family:Cochin, Georgia, Times, 'Times New Roman', serif; */
+  /* font-family:Georgia, Times, 'Times New Roman', serif; */
+
   margin: 0;
   padding: 0;
   text-align: left;
@@ -94,10 +103,11 @@ body {
 }
 
 main {
-  width: 720px;
-  max-width: calc(100% - 2em);
-  margin: auto;
-  padding: 1em 1em;
+  box-sizing: border-box;
+  width: 100%;
+  max-width: 1200px;
+  margin: 0 auto;
+  padding: 0 2rem;
 }
 
 /* ============================================
@@ -110,6 +120,8 @@ h3,
 h4,
 h5,
 h6 {
+  /* font-family: "Optician Sans", "Helvetica", "Arial", sans-serif; */
+  /* font-family: "Space Grotesk", "Helvetica", "Arial", sans-serif; */
   margin: 0 0 0.5rem 0;
   color: var(--text-heading);
   line-height: 1.2;
@@ -253,4 +265,15 @@ hr {
 
 html {
   scrollbar-color: gray transparent;
+}
+
+.boids-background {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100vw;
+  height: 100vh;
+  z-index: 0;
+  opacity: 0.5;
+  pointer-events: none;
 }

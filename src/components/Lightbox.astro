@@ -15,22 +15,22 @@
         <span class="close-key">ESC</span>
       </button>
     </div>
-    
+
     <div class="lightbox-stage">
       <button class="lightbox-nav lightbox-prev" aria-label="Previous image">
         <span class="nav-arrow">←</span>
       </button>
-      
+
       <div class="lightbox-content">
         <div class="loading-bar"></div>
         <img id="lightbox-img" src="" alt="Full size photo" />
       </div>
-      
+
       <button class="lightbox-nav lightbox-next" aria-label="Next image">
         <span class="nav-arrow">→</span>
       </button>
     </div>
-    
+
     <div class="lightbox-footer">
       <div class="progress-track">
         <div class="progress-fill"></div>
@@ -154,7 +154,9 @@
     object-fit: contain;
     opacity: 0;
     transform: scale(0.98);
-    transition: opacity 0.3s ease, transform 0.3s ease;
+    transition:
+      opacity 0.3s ease,
+      transform 0.3s ease;
   }
 
   .lightbox-content img.loaded {
@@ -180,7 +182,7 @@
   }
 
   .loading-bar::after {
-    content: '';
+    content: "";
     position: absolute;
     top: 0;
     left: -100%;
@@ -191,9 +193,15 @@
   }
 
   @keyframes loading {
-    0% { left: -100%; }
-    50% { left: 0; }
-    100% { left: 100%; }
+    0% {
+      left: -100%;
+    }
+    50% {
+      left: 0;
+    }
+    100% {
+      left: 100%;
+    }
   }
 
   /* Navigation */
@@ -300,39 +308,39 @@
     const currentIndexEl = document.querySelector(".lightbox .current-index") as HTMLElement;
     const totalCountEl = document.querySelector(".lightbox .total-count") as HTMLElement;
     const progressFill = document.querySelector(".lightbox .progress-fill") as HTMLElement;
-    
+
     if (!lightbox || !lightboxImg || !galleryItems.length) return;
 
     let currentIndex = 0;
-    
+
     const images = Array.from(galleryItems).map((item) => {
       const img = item.querySelector("img") as HTMLImageElement;
       return {
         src: img.currentSrc || img.src,
         srcset: img.srcset,
-        alt: img.alt
+        alt: img.alt,
       };
     });
 
     // Set total count
-    totalCountEl.textContent = String(images.length).padStart(2, '0');
+    totalCountEl.textContent = String(images.length).padStart(2, "0");
 
     function updateUI() {
-      currentIndexEl.textContent = String(currentIndex + 1).padStart(2, '0');
+      currentIndexEl.textContent = String(currentIndex + 1).padStart(2, "0");
       progressFill.style.width = `${((currentIndex + 1) / images.length) * 100}%`;
     }
 
     function showImage(index: number) {
       currentIndex = index;
       const imageData = images[index];
-      
+
       lightboxImg.classList.remove("loaded");
       loadingBar.classList.add("visible");
-      
+
       lightboxImg.srcset = imageData.srcset;
       lightboxImg.src = imageData.src;
       lightboxImg.alt = imageData.alt;
-      
+
       updateUI();
     }
 
@@ -343,12 +351,12 @@
 
     function openLightbox(index: number) {
       showImage(index);
-      lightbox.classList.add("active");
+      lightbox?.classList.add("active");
       document.body.style.overflow = "hidden";
     }
 
     function closeLightbox() {
-      lightbox.classList.remove("active");
+      lightbox?.classList.remove("active");
       document.body.style.overflow = "";
     }
 
@@ -374,7 +382,7 @@
       e.stopPropagation();
       navigate(-1);
     });
-    
+
     lightbox.querySelector(".lightbox-next")?.addEventListener("click", (e) => {
       e.stopPropagation();
       navigate(1);
@@ -382,7 +390,7 @@
 
     document.addEventListener("keydown", (e) => {
       if (!lightbox.classList.contains("active")) return;
-      
+
       if (e.key === "Escape") closeLightbox();
       if (e.key === "ArrowLeft") navigate(-1);
       if (e.key === "ArrowRight") navigate(1);
@@ -390,18 +398,26 @@
 
     // Touch swipe support
     let touchStartX = 0;
-    lightbox.addEventListener("touchstart", (e) => {
-      touchStartX = e.touches[0].clientX;
-    }, { passive: true });
+    lightbox.addEventListener(
+      "touchstart",
+      (e) => {
+        touchStartX = e.touches[0].clientX;
+      },
+      { passive: true },
+    );
 
-    lightbox.addEventListener("touchend", (e) => {
-      const touchEndX = e.changedTouches[0].clientX;
-      const diff = touchStartX - touchEndX;
-      
-      if (Math.abs(diff) > 50) {
-        navigate(diff > 0 ? 1 : -1);
-      }
-    }, { passive: true });
+    lightbox.addEventListener(
+      "touchend",
+      (e) => {
+        const touchEndX = e.changedTouches[0].clientX;
+        const diff = touchStartX - touchEndX;
+
+        if (Math.abs(diff) > 50) {
+          navigate(diff > 0 ? 1 : -1);
+        }
+      },
+      { passive: true },
+    );
   }
 
   if (document.readyState === "loading") {

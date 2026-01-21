@@ -14,16 +14,16 @@ const { images } = Astro.props;
       images.map((image, index) => (
         <article class="gallery-item" data-index={index}>
           <div class="item-frame">
-            <Image 
-              src={image.default} 
-              alt={`Photo ${String(index + 1).padStart(2, '0')}`}
+            <Image
+              src={image.default}
+              alt={`Photo ${String(index + 1).padStart(2, "0")}`}
               loading={index < 6 ? "eager" : "lazy"}
               widths={[400, 800, 1200, 1920, 2560, 3840]}
               sizes="(max-width: 640px) 100vw, (max-width: 1024px) 50vw, 33vw"
               quality={90}
             />
           </div>
-          <span class="item-index">{String(index + 1).padStart(2, '0')}</span>
+          <span class="item-index">{String(index + 1).padStart(2, "0")}</span>
         </article>
       ))
     }
@@ -42,7 +42,7 @@ const { images } = Astro.props;
     grid-template-columns: repeat(12, 1fr);
     gap: 2px;
     /* background: var(--accent); */
-    background: var(--bg-primary)
+    background: var(--bg-primary);
   }
 
   .gallery-item {
@@ -57,49 +57,49 @@ const { images } = Astro.props;
     grid-column: span 5;
     grid-row: span 2;
   }
-  
+
   .gallery-item:nth-child(12n + 2) {
     grid-column: span 4;
   }
-  
+
   .gallery-item:nth-child(12n + 3) {
     grid-column: span 3;
   }
-  
+
   .gallery-item:nth-child(12n + 4) {
     grid-column: span 4;
   }
-  
+
   .gallery-item:nth-child(12n + 5) {
     grid-column: span 3;
     grid-row: span 2;
   }
-  
+
   .gallery-item:nth-child(12n + 6) {
     grid-column: span 6;
   }
-  
+
   .gallery-item:nth-child(12n + 7) {
     grid-column: span 6;
   }
-  
+
   .gallery-item:nth-child(12n + 8) {
     grid-column: span 3;
   }
-  
+
   .gallery-item:nth-child(12n + 9) {
     grid-column: span 4;
     grid-row: span 2;
   }
-  
+
   .gallery-item:nth-child(12n + 10) {
     grid-column: span 5;
   }
-  
+
   .gallery-item:nth-child(12n + 11) {
     grid-column: span 5;
   }
-  
+
   .gallery-item:nth-child(12n + 12) {
     grid-column: span 7;
   }
@@ -124,8 +124,9 @@ const { images } = Astro.props;
     object-fit: cover;
     display: block;
     filter: grayscale(0%);
-    transition: transform 0.4s cubic-bezier(0.25, 0.46, 0.45, 0.94), 
-                filter 0.4s ease;
+    transition:
+      transform 0.4s cubic-bezier(0.25, 0.46, 0.45, 0.94),
+      filter 0.4s ease;
   }
 
   .item-index {
@@ -140,7 +141,9 @@ const { images } = Astro.props;
     background: var(--accent);
     opacity: 0;
     transform: translateY(100%);
-    transition: opacity 0.3s ease, transform 0.3s ease;
+    transition:
+      opacity 0.3s ease,
+      transform 0.3s ease;
   }
 
   .gallery-item:hover .item-index {

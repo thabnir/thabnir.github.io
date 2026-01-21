@@ -2,7 +2,6 @@
 import { Image } from "astro:assets";
 import type { CollectionEntry } from "astro:content";
 import BaseHead from "../components/BaseHead.astro";
-import Footer from "../components/Footer.astro";
 import FormattedDate from "../components/FormattedDate.astro";
 import Header from "../components/Header.astro";
 
@@ -24,6 +23,10 @@ const { title, description, pubDate, updatedDate, heroImage } = Astro.props;
         max-width: 1200px;
         margin: 0 auto;
         padding: 0;
+      }
+
+      .prose :global .katex {
+        font-size: 1.125rem;
       }
 
       /* Article Header - Swiss Grid */
@@ -99,7 +102,8 @@ const { title, description, pubDate, updatedDate, heroImage } = Astro.props;
         width: 100%;
         height: auto;
         aspect-ratio: 21 / 9;
-        object-fit: cover;
+        object-fit: contain;
+        /* Maybe this should be cover? */
       }
 
       /* Prose Content */
@@ -136,7 +140,7 @@ const { title, description, pubDate, updatedDate, heroImage } = Astro.props;
         text-transform: uppercase;
         letter-spacing: 0.05em;
         margin: 2rem 0 1rem;
-        color: var(--accent);
+        color: var(--text-heading);
       }
 
       .prose :global(p) {
@@ -170,6 +174,14 @@ const { title, description, pubDate, updatedDate, heroImage } = Astro.props;
         color: var(--accent);
       }
 
+      /* Citations */
+      .prose :global(cite a[href^="#fn"]),
+      .prose :global(sup a) {
+        text-decoration: none;
+        /* add a little left padding */
+        padding-left: 0.1rem;
+      }
+
       .prose :global(ol li::marker) {
         color: var(--accent);
         font-weight: 600;
@@ -201,8 +213,8 @@ const { title, description, pubDate, updatedDate, heroImage } = Astro.props;
         margin: 2rem 0;
         overflow-x: auto;
         font-family:
-          "Geist Mono", ui-monospace, "SF Mono", SFMono-Regular, Menlo, Monaco,
-          Consolas, "Liberation Mono", "Courier New", monospace;
+          "Geist Mono", ui-monospace, "SF Mono", SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono",
+          "Courier New", monospace;
         font-size: 0.875rem;
         line-height: 1.65;
         letter-spacing: 0;
@@ -231,8 +243,8 @@ const { title, description, pubDate, updatedDate, heroImage } = Astro.props;
         color: var(--accent-dark);
         padding: 0.2em 0.4em;
         font-family:
-          "Geist Mono", ui-monospace, "SF Mono", SFMono-Regular, Menlo, Monaco,
-          Consolas, "Liberation Mono", "Courier New", monospace;
+          "Geist Mono", ui-monospace, "SF Mono", SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono",
+          "Courier New", monospace;
         font-size: 0.875em;
         font-weight: 500;
         border: 1px solid rgba(var(--gray), 0.18);
