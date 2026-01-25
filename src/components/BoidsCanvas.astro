@@ -834,8 +834,6 @@ const toggleBtnId = `${id}-toggle`;
     }
 
     private key(xi: number, yi: number): string {
-      // Use a collision-free key; collisions in the previous numeric hash could
-      // silently explode neighbor counts at high boid densities.
       return `${xi},${yi}`;
     }
 
@@ -989,6 +987,7 @@ const toggleBtnId = `${id}-toggle`;
     private cachedFovDeg = Number.NaN;
     private cachedCosHalfFovSq = 0;
     private cachedIsFullFov = true;
+    private cachedFovGt180 = false;
 
     // Neighbor-accumulation scratch state (avoids allocating per-boid closures)
     private accTargetBoid: Boid | null = null;
@@ -998,6 +997,7 @@ const toggleBtnId = `${id}-toggle`;
     private accVisualRange2 = 0;
     private accMinDistance2 = 0;
     private accFullFov = true;
+    private accFovGt180 = false;
     private accCosHalfFovSq = 0;
     private accDoFlock = false;
 
@@ -1028,10 +1028,18 @@ const toggleBtnId = `${id}-toggle`;
           inFov = true;
         } else {
           const dot = this.accVX * dx + this.accVY * dy;
-          if (dot <= 0) {
-            inFov = false;
+          if (this.accFovGt180) {
+            if (dot >= 0) {
+              inFov = true;
+            } else {
+              inFov = dot * dot <= this.accVMag2 * dist2 * this.accCosHalfFovSq;
+            }
           } else {
-            inFov = dot * dot >= this.accVMag2 * dist2 * this.accCosHalfFovSq;
+            if (dot <= 0) {
+              inFov = false;
+            } else {
+              inFov = dot * dot >= this.accVMag2 * dist2 * this.accCosHalfFovSq;
+            }
           }
         }
       }
@@ -1212,9 +1220,11 @@ const toggleBtnId = `${id}-toggle`;
       if (fov >= 360) {
         this.cachedIsFullFov = true;
         this.cachedCosHalfFovSq = 0;
+        this.cachedFovGt180 = true;
         return;
       }
       this.cachedIsFullFov = false;
+      this.cachedFovGt180 = fov > 180;
       const halfFovRad = (fov * Math.PI) / 360;
       const cosHalf = Math.cos(halfFovRad);
       this.cachedCosHalfFovSq = cosHalf * cosHalf;
@@ -1235,8 +1245,13 @@ const toggleBtnId = `${id}-toggle`;
       if (dist2 === 0) return true;
 
       const dot = vx * dx + vy * dy;
-      if (dot <= 0) return false;
-      return dot * dot >= vMag2 * dist2 * this.cachedCosHalfFovSq;
+      if (this.cachedFovGt180) {
+        if (dot >= 0) return true;
+        return dot * dot <= vMag2 * dist2 * this.cachedCosHalfFovSq;
+      } else {
+        if (dot <= 0) return false;
+        return dot * dot >= vMag2 * dist2 * this.cachedCosHalfFovSq;
+      }
     }
 
     applyTurnRateLimit(boid: Boid, origDx: number, origDy: number): void {
@@ -1482,6 +1497,7 @@ const toggleBtnId = `${id}-toggle`;
       const minSpeed2 = minSpeed * minSpeed;
 
       const fullFov = this.params.fieldOfView >= 360;
+      const fovGt180 = this.params.fieldOfView > 180;
       const cosHalfFovSq = fullFov
         ? 0
         : (() => {
@@ -1509,6 +1525,7 @@ const toggleBtnId = `${id}-toggle`;
         this.accVisualRange2 = visualRange2;
         this.accMinDistance2 = minDistance2;
         this.accFullFov = fullFov;
+        this.accFovGt180 = fovGt180;
         this.accCosHalfFovSq = cosHalfFovSq;
         this.accDoFlock = doFlock;
 
