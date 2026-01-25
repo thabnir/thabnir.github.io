@@ -1,5 +1,4 @@
 ---
-import { Image } from "astro:assets";
 import BaseHead from "../components/BaseHead.astro";
 import Header from "../components/Header.astro";
 import { SITE_DESCRIPTION, SITE_TITLE } from "../consts";
@@ -32,6 +31,7 @@ const props = Astro.props;
       separationFactor={0.005}
       cohesionFactor={0.08}
       enableScrollControl={true}
+      fieldOfView={130}
     />
   </div>
   <body>
@@ -55,5 +55,75 @@ const props = Astro.props;
         </a>
       </strong>
     </main>
+
+    <script>
+      /**
+       * Boid Parameter Automation
+       * Switches between "Ordered" and "Chaotic" modes to keep the background interesting.
+       */
+
+      const CONFIG = {
+        ORDERED_DURATION_MS: 15000,
+        CHAOTIC_DURATION_MS: 8000,
+
+        // Gives rise to a cell-like structure (cool)
+        // Eventually simplifies into a few large groups moving straight (boring).
+        // Takes about 15-20 seconds before it get boring, so switch to chaotic mode for a bit to re-scatter the boids.
+        ORDERED_PARAMS: {
+          alignmentFactor: 0.0065,
+          cohesionFactor: 0.08,
+          separationFactor: 0.005,
+          fieldOfView: 130,
+          minDistance: 10,
+          maxSpeed: 1.5,
+        },
+
+        // Scatters the boids around. They look like wiggly worms.
+        CHAOTIC_PARAMS: {
+          alignmentFactor: 0.002,
+          cohesionFactor: 0.001,
+          separationFactor: 0.02,
+          fieldOfView: 280,
+          minDistance: 35,
+          maxSpeed: 2.2,
+        },
+      };
+
+      function initBoidAutomation() {
+        const containerId = "bg-boids-container";
+
+        // Wait for the instance to be ready
+        const checkInterval = setInterval(() => {
+          const w = window as any;
+          if (w.boidsInstances && w.boidsInstances.has(containerId)) {
+            clearInterval(checkInterval);
+            startLoop(w.boidsInstances.get(containerId));
+          }
+        }, 100);
+      }
+
+      function startLoop(instance: any) {
+        let isOrdered = true;
+
+        const switchMode = () => {
+          if (isOrdered) {
+            instance.setParams(CONFIG.CHAOTIC_PARAMS);
+            setTimeout(switchMode, CONFIG.CHAOTIC_DURATION_MS);
+          } else {
+            instance.setParams(CONFIG.ORDERED_PARAMS);
+            setTimeout(switchMode, CONFIG.ORDERED_DURATION_MS);
+          }
+          isOrdered = !isOrdered;
+        };
+
+        setTimeout(switchMode, CONFIG.ORDERED_DURATION_MS);
+      }
+
+      if (document.readyState === "loading") {
+        document.addEventListener("DOMContentLoaded", initBoidAutomation);
+      } else {
+        initBoidAutomation();
+      }
+    </script>
   </body>
 </html>
