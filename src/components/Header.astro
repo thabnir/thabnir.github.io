@@ -23,13 +23,6 @@ import HeaderLink from "./HeaderLink.astro";
 
   <style>
     header {
-      /* width: 1200px;
-      display: flex;
-      flex-direction: column;
-      max-width: calc(100% - 2em);
-      margin: 0 auto;
-      padding: 0 1em; */
-
       box-sizing: border-box;
       width: 100%;
       max-width: 1200px;
@@ -45,7 +38,7 @@ import HeaderLink from "./HeaderLink.astro";
     }
 
     h1 {
-      font-size: 9vw;
+      font-size: min(9vw, 128px);
       letter-spacing: -0.02em;
     }
 
