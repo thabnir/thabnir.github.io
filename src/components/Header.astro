@@ -4,25 +4,34 @@ import HeaderLink from "./HeaderLink.astro";
 ---
 
 <header>
-  <div class="logo-row">
-    <h1><a href="/">{SITE_TITLE}</a></h1>
+  <div class="header-inner">
+    <div class="logo-row">
+      <h1><a href="/">{SITE_TITLE}</a></h1>
+    </div>
   </div>
   <hr class="header-divider" />
-  <nav>
-    <HeaderLink href="/">About</HeaderLink>
-    <span class="nav-separator">|</span>
-    <HeaderLink href="/blog">Blog</HeaderLink>
-    <span class="nav-separator">|</span>
-    <HeaderLink href="/boids-explained">Boids</HeaderLink>
-    <span class="nav-separator">|</span>
-    <HeaderLink href="https://github.com/thabnir">GitHub</HeaderLink>
-    <span class="nav-separator">|</span>
-    <HeaderLink href="https://linkedin.com/in/henry-lefebvre">LinkedIn</HeaderLink>
-  </nav>
-  <!-- <hr class="header-divider" /> -->
+  <div class="header-inner">
+    <nav>
+      <HeaderLink href="/">About</HeaderLink>
+      <span class="nav-separator">|</span>
+      <HeaderLink href="/blog">Blog</HeaderLink>
+      <span class="nav-separator">|</span>
+      <HeaderLink href="/boids-explained">Boids</HeaderLink>
+      <span class="nav-separator">|</span>
+      <HeaderLink href="https://github.com/thabnir">GitHub</HeaderLink>
+      <span class="nav-separator">|</span>
+      <HeaderLink href="https://linkedin.com/in/henry-lefebvre">LinkedIn</HeaderLink>
+    </nav>
+  </div>
 
   <style>
     header {
+      width: 100%;
+      margin: 0;
+      padding: 0;
+    }
+
+    .header-inner {
       box-sizing: border-box;
       width: 100%;
       max-width: 1200px;
@@ -55,8 +64,7 @@ import HeaderLink from "./HeaderLink.astro";
       border: none;
       border-top: 2px solid var(--text-heading);
       margin: -0.5em 0 0;
-      width: 100vw;
-      margin-left: calc(50% - 50vw);
+      width: 100%;
     }
 
     nav {
@@ -73,7 +81,7 @@ import HeaderLink from "./HeaderLink.astro";
     }
 
     @media (max-width: 720px) {
-      header {
+      .header-inner {
         padding: 0 1em;
       }
 

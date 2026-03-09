@@ -17,7 +17,7 @@ const props = Astro.props;
     <BoidsCanvas
       id="bg-boids"
       enableFpsLimit={true}
-      fpsLimit={30}
+      fpsLimit={60}
       nBoids={1750}
       nBoidsMobile={300}
       boidSize={1}
@@ -38,14 +38,10 @@ const props = Astro.props;
     <Header />
     <main>
       <p>
-        I'm a software developer.<br />
-        Don't confuse me with <i
-          ><a href="https://en.wikipedia.org/wiki/Henri_Lefebvre" class="hover-picture">Henri Lefebvre</a></i
-        >, the Marxist philosopher.<br />
-        He's old, dead, and doesn't know <a href="/blog/typescript">the first thing about Typescript</a>.<br />
-        I'm young, alive, and seeking employment after graduation.<br />
-        To get in touch, <a href="mailto:henrylefeb@gmail.com">email me</a> or <a
-          href="https://www.linkedin.com/in/henry-lefebvre/">message me on LinkedIn</a
+        I study computer science at <a href="https://www.mcgill.ca/">McGill University</a>.<br />
+        Check out my projects <a href="/blog">here</a>.<br />
+        To get in touch, email me at <a href="mailto:henrylefeb@gmail.com">henrylefeb@gmail.com</a> or message me on <a
+          href="https://www.linkedin.com/in/henry-lefebvre/">LinkedIn</a
         >.
       </p>
       <strong>
@@ -63,8 +59,8 @@ const props = Astro.props;
        */
 
       const CONFIG = {
-        ORDERED_DURATION_MS: 15000,
-        CHAOTIC_DURATION_MS: 8000,
+        ORDERED_DURATION_MS: 10000,
+        CHAOTIC_DURATION_MS: 5000,
 
         // Gives rise to a cell-like structure (cool)
         // Eventually simplifies into a few large groups moving straight (boring).

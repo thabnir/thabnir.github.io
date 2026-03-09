@@ -1,6 +1,6 @@
 ---
-title: "Making Deformable Collision Bounds 50% Tighter"
-description: "A deep dive into Bounded Deformation Trees, the math behind real-time squishy physics, and quantifying the 'slack' in collision bounds."
+title: "Refitting BVHs for Soft-Body Collision"
+description: "Quantifying and improving the performance of Bounded Deformation Trees, the structures allowing output-sensitive collision detection for deformable models."
 pubDate: "Jan 11 2026"
 heroImage: "../../assets/bdtree/bunny-layer10-bvh.png"
 ---
