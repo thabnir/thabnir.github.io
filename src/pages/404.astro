@@ -1,0 +1,172 @@
+---
+import BaseHead from "../components/BaseHead.astro";
+import Header from "../components/Header.astro";
+import BoidsCanvas from "../components/BoidsCanvas.astro";
+import { SITE_TITLE } from "../consts";
+---
+
+<!doctype html>
+<html lang="en">
+  <head>
+    <BaseHead title={`404 - ${SITE_TITLE}`} description="Page not found." />
+    <style>
+      .boids-background {
+        position: fixed;
+        inset: 0;
+        z-index: 0;
+        opacity: 0.5;
+        pointer-events: none;
+      }
+
+      main {
+        min-height: calc(100svh - 8rem);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        padding: 2rem 1.5rem;
+        box-sizing: border-box;
+      }
+
+      .not-found {
+        max-width: 40rem;
+        width: 100%;
+        padding: clamp(2rem, 6vw, 3.5rem);
+        box-sizing: border-box;
+      }
+
+      .status-line {
+        display: flex;
+        flex-wrap: wrap;
+        justify-content: space-between;
+        gap: 0.25rem 1rem;
+        color: var(--accent);
+        margin: 0 0 1rem;
+      }
+
+      .status-line span:first-child {
+        white-space: nowrap;
+      }
+
+      .status-line .path {
+        color: var(--text-primary);
+        text-transform: none; /* show the real path — URLs are case-sensitive */
+        opacity: 0.6;
+        overflow: hidden;
+        text-overflow: ellipsis;
+        white-space: nowrap;
+      }
+
+      h1 {
+        font-size: clamp(5.5rem, 20vw, 10rem);
+        font-weight: 900;
+        letter-spacing: -0.04em;
+        line-height: 0.9;
+        margin: 0 0 1.5rem;
+        color: var(--text-heading);
+      }
+
+      h1 .zero {
+        color: var(--accent);
+      }
+
+      .rule {
+        border: none;
+        border-top: 1px solid var(--hairline);
+        margin: 0 0 1.5rem;
+      }
+
+      .lede {
+        font-size: 1.15rem;
+        line-height: 1.7;
+        margin: 0 0 2rem;
+        max-width: 45ch;
+      }
+
+      .actions {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 0.75rem;
+      }
+
+      .action {
+        display: inline-flex;
+        align-items: center;
+        gap: 0.4rem;
+        padding: 0.6rem 1rem;
+        border: 1px solid var(--hairline);
+        color: var(--text-heading);
+        text-decoration: none;
+        transition:
+          border-color 0.15s ease,
+          background 0.15s ease,
+          color 0.15s ease;
+      }
+
+      .action:hover {
+        border-color: var(--accent);
+        color: var(--accent);
+      }
+
+      .action-primary {
+        background: var(--accent);
+        border-color: var(--accent);
+        color: #fff;
+      }
+
+      .action-primary:hover {
+        background: var(--accent-dark);
+        border-color: var(--accent-dark);
+        color: #fff;
+      }
+    </style>
+  </head>
+
+  <body>
+    <div class="boids-background" aria-hidden="true">
+      <BoidsCanvas
+        id="bg-boids"
+        enableFpsLimit={true}
+        fpsLimit={60}
+        nBoids={900}
+        nBoidsMobile={300}
+        boidSize={3}
+        trailLength={100}
+        drawTrail={true}
+        colorMode="velocity"
+        showVision={false}
+        showStats={false}
+        maxSpeed={1.5}
+        alignmentFactor={0.0065}
+        separationFactor={0.005}
+        cohesionFactor={0.08}
+        fieldOfView={130}
+        cursorMagnetism={0.35}
+        cursorMagnetismRange={400}
+      />
+    </div>
+
+    <Header />
+
+    <main>
+      <section class="not-found panel">
+        <p class="status-line mono">
+          <span>Error — Not Found</span>
+          <span class="path" id="requested-path"></span>
+        </p>
+        <h1>4<span class="zero">0</span>4</h1>
+        <hr class="rule" />
+        <p class="lede">This page doesn't exist. Maybe it never did, or maybe it flew off with the rest of the flock.</p>
+        <div class="actions mono">
+          <a class="action action-primary" href="/">&larr; Back home</a>
+          <a class="action" href="/boids-explained">Watch the boids</a>
+        </div>
+      </section>
+    </main>
+
+    <script>
+      // Show the URL that 404'd, in the metadata line
+      const el = document.getElementById("requested-path");
+      if (el) el.textContent = `GET ${window.location.pathname}`;
+    </script>
+  </body>
+</html>
