@@ -964,7 +964,7 @@ const CODE_UPDATE = `function update(boid, neighbors) {
       <!-- Introduction -->
       <section class="section" data-section="intro" id="intro">
         <div class="section-content">
-          <span class="section-number">01 — Introduction</span>
+          <span class="section-number">1 — Introduction</span>
           <h2 class="section-title">What Are Boids?</h2>
           <div class="section-text">
             <p>
@@ -991,7 +991,7 @@ const CODE_UPDATE = `function update(boid, neighbors) {
       <!-- The Three Rules -->
       <section class="section" data-section="rules">
         <div class="section-content">
-          <span class="section-number">02 — The Algorithm</span>
+          <span class="section-number">2 — The Algorithm</span>
           <h2 class="section-title">Three Simple Rules</h2>
           <div class="section-text">
             <p>
@@ -1057,18 +1057,16 @@ const CODE_UPDATE = `function update(boid, neighbors) {
         </div>
         <div class="demo-overlay demo-overlay--separation" style="--vision-radius: 202px; --vision-feather: 192px;">
           <div class="section-content">
-            <span class="section-number">03 — Don't Crash</span>
+            <span class="section-number">3 — Don't Crash!</span>
             <h2 class="section-title">Separation</h2>
             <div class="section-text">
               <p>
                 The separation rule is the most basic of the three. It simply steers each boid to avoid collisions with
                 nearby flockmates.
-                <!-- </p>
-              <p> -->
                 With just separation enabled, a boid's only job is to avoid running into its neighbors.
               </p>
             </div>
-            <!-- <Prism class="code-block" lang="ts" code={CODE_SEPARATE} /> -->
+            <Prism class="code-block" lang="ts" code={CODE_SEPARATE} />
           </div>
         </div>
       </section>
@@ -1082,19 +1080,19 @@ const CODE_UPDATE = `function update(boid, neighbors) {
             boidSize={10}
             separationFactor={0.002}
             alignmentFactor={0.02}
-            cohesionFactor={0.0001}
+            cohesionFactor={0.0}
             colorMode="velocity"
             drawTrail={true}
             trailLength={50}
             maxSpeed={1.5}
             enableFpsLimit={true}
             cursorMagnetism={0.2}
-            cursorMagnetismRange={300}
+            cursorMagnetismRange={200}
           />
         </div>
         <div class="demo-overlay">
           <div class="section-content">
-            <span class="section-number">04 — Follow the Flock</span>
+            <span class="section-number">4 — Follow the Flock</span>
             <h2 class="section-title">Alignment</h2>
             <div class="section-text">
               <p>
@@ -1103,7 +1101,7 @@ const CODE_UPDATE = `function update(boid, neighbors) {
                 direction. They also do a much better job of avoiding collisions.
               </p>
             </div>
-            <!-- <Prism class="code-block" lang="ts" code={CODE_ALIGN} /> -->
+            <Prism class="code-block" lang="ts" code={CODE_ALIGN} />
           </div>
         </div>
       </section>
@@ -1113,31 +1111,33 @@ const CODE_UPDATE = `function update(boid, neighbors) {
         <div class="demo-boids">
           <BoidsCanvas
             id="demo-cohesion"
-            nBoids={180}
+            nBoids={380}
             boidSize={8}
-            separationFactor={0.003}
-            alignmentFactor={0.003}
+            separationFactor={0.002}
+            alignmentFactor={0.00}
             cohesionFactor={0.003}
             colorMode="flock"
             colorBlendSpeed={0.1}
             drawTrail={true}
             trailLength={30}
-            maxSpeed={1.0}
-            cursorMagnetism={0.2}
-            cursorMagnetismRange={300}
+            maxSpeed={1.5}
+            cursorMagnetism={0.0}
+            cursorMagnetismRange={100}
+            fieldOfView={360}
           />
         </div>
         <div class="demo-overlay">
           <div class="section-content">
-            <span class="section-number">05 — Get Close</span>
+            <span class="section-number">5 — Get to The Middle</span>
             <h2 class="section-title">Cohesion</h2>
             <div class="section-text">
               <p>
-                Here the boids actively seek the center of their local group. Watch how they form tight clusters that
-                split and merge organically. Neighboring boids' colors blend together to represent flock connections.
+                Here the boids actively seek the center of their local group. Watch how they form tight clusters and
+                spirals that split and merge organically. Neighboring boids' colors blend together to represent flock
+                connections.
               </p>
             </div>
-            <!-- <Prism class="code-block" lang="ts" code={CODE_COHERE} /> -->
+            <Prism class="code-block" lang="ts" code={CODE_COHERE} />
           </div>
         </div>
       </section>
@@ -1145,7 +1145,7 @@ const CODE_UPDATE = `function update(boid, neighbors) {
       <!-- Zoom intro hint -->
       <section class="section zoom-section" data-section="zoom" data-behavior="perspective">
         <div class="section-content">
-          <span class="section-number">06 — Perspective</span>
+          <span class="section-number">6 — Perspective</span>
           <h2 class="section-title">A Boid's-Eye View</h2>
           <div class="section-text">
             <p>Keep scrolling to zoom in on a single boid and watch how it perceives the world.</p>
@@ -1204,9 +1204,9 @@ const CODE_UPDATE = `function update(boid, neighbors) {
       </section>
 
       <!-- Technical Implementation -->
-      <section class="section" data-section="implementation">
+      <!-- <section class="section" data-section="implementation">
         <div class="section-content">
-          <span class="section-number">07 — Implementation</span>
+          <span class="section-number">7 — Implementation</span>
           <h2 class="section-title">Making It Fast</h2>
           <div class="section-text">
             <p>
@@ -1215,14 +1215,14 @@ const CODE_UPDATE = `function update(boid, neighbors) {
               grows, this quickly becomes intractable.
             </p>
             <p>
-              The solution? A <strong>spatial hash grid</strong>. By dividing space into cells, each boid only needs to
+              A <strong>spatial hash grid</strong>. By dividing space into cells, each boid only needs to
               check neighbors in nearby cells. This reduces complexity dramatically, allowing thousands of boids to
               flock smoothly at 60fps.
             </p>
           </div>
-          <!-- <Prism class="code-block" lang="ts" code={CODE_SPATIAL_HASH} /> -->
+          <Prism class="code-block" lang="ts" code={CODE_SPATIAL_HASH} />
         </div>
-      </section>
+      </section> -->
 
       <!-- Putting It Together -->
       <section class="section demo-section" data-section="together" data-behavior="flocking">
@@ -1237,15 +1237,15 @@ const CODE_UPDATE = `function update(boid, neighbors) {
             colorMode="velocity"
             drawTrail={true}
             trailLength={30}
-            maxSpeed={1.8}
+            maxSpeed={1.5}
             enableFpsLimit={true}
-            cursorMagnetism={0.2}
-            cursorMagnetismRange={300}
+            cursorMagnetism={0.1}
+            cursorMagnetismRange={100}
           />
         </div>
         <div class="demo-overlay">
           <div class="section-content">
-            <span class="section-number">08 — Synthesis</span>
+            <span class="section-number">7 — Synthesis</span>
             <h2 class="section-title">Putting It All Together</h2>
             <div class="section-text">
               <p>
@@ -1261,10 +1261,10 @@ const CODE_UPDATE = `function update(boid, neighbors) {
       <!-- Applications -->
       <section class="section" data-section="applications">
         <div class="section-content">
-          <span class="section-number">09 — Applications</span>
+          <span class="section-number">8 — Applications</span>
           <h2 class="section-title">Beyond Simulation</h2>
           <div class="section-text">
-            <p>Boids aren't just pretty animations. The principles have been applied to:</p>
+            <p>Boids show up in a number of places you might not expect:</p>
           </div>
           <div class="rules-grid">
             <div class="rule-card">
@@ -1295,7 +1295,7 @@ const CODE_UPDATE = `function update(boid, neighbors) {
       <!-- Full Experience -->
       <section class="full-experience" id="full-experience" data-section="full">
         <div class="playground-header">
-          <span class="section-number">10 — Playground</span>
+          <span class="section-number">9 — Playground</span>
           <h2 class="section-title">Experiment</h2>
           <div class="playground-hint" id="playground-hint">
             <span>Click the menu in the corner to tweak boid simulation parameters.</span>
@@ -1321,8 +1321,8 @@ const CODE_UPDATE = `function update(boid, neighbors) {
             zoomLevel={1}
             cameraSmoothing={0.08}
             zoomSmoothing={0.02}
-            cursorMagnetism={0.15}
-            cursorMagnetismRange={350}
+            cursorMagnetism={0.05}
+            cursorMagnetismRange={150}
           />
         </div>
       </section>
@@ -1531,10 +1531,9 @@ const CODE_UPDATE = `function update(boid, neighbors) {
                     let closestIndex = 0;
                     let closestDistance = Infinity;
 
-                    for (let i = 0; i < instance.boids.length; i++) {
-                      const boid = instance.boids[i];
-                      const dx = boid.x - centerX;
-                      const dy = boid.y - centerY;
+                    for (let i = 0; i < instance.sim.count; i++) {
+                      const dx = instance.sim.posX[i] - centerX;
+                      const dy = instance.sim.posY[i] - centerY;
                       const dist = dx * dx + dy * dy; // squared distance is fine for comparison
                       if (dist < closestDistance) {
                         closestDistance = dist;
@@ -1542,7 +1541,7 @@ const CODE_UPDATE = `function update(boid, neighbors) {
                       }
                     }
 
-                    const targetBoid = instance.boids[closestIndex];
+                    const targetBoid = { x: instance.sim.posX[closestIndex], y: instance.sim.posY[closestIndex] };
                     const startZoom = 5;
 
                     // Instantly position camera on the center boid (no smoothing)
@@ -1580,10 +1579,9 @@ const CODE_UPDATE = `function update(boid, neighbors) {
                       let closestIndex = 0;
                       let closestDistance = Infinity;
 
-                      for (let i = 0; i < instance.boids.length; i++) {
-                        const boid = instance.boids[i];
-                        const dx = boid.x - centerX;
-                        const dy = boid.y - centerY;
+                      for (let i = 0; i < instance.sim.count; i++) {
+                        const dx = instance.sim.posX[i] - centerX;
+                        const dy = instance.sim.posY[i] - centerY;
                         const dist = dx * dx + dy * dy; // squared distance is fine for comparison
                         if (dist < closestDistance) {
                           closestDistance = dist;
@@ -1592,7 +1590,7 @@ const CODE_UPDATE = `function update(boid, neighbors) {
                       }
 
                       // Set up for the zoom-in then zoom-out animation
-                      const targetBoid = instance.boids[closestIndex];
+                      const targetBoid = { x: instance.sim.posX[closestIndex], y: instance.sim.posY[closestIndex] };
                       const startZoom = 5;
                       const endZoom = 1;
 

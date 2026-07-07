@@ -30,6 +30,16 @@
   --text-primary: rgb(var(--gray-dark));
   --text-heading: rgb(var(--black));
 
+  /* Typefaces */
+  --font-sans: "Neue Montreal", "Helvetica Neue", "Helvetica", "Arial", sans-serif;
+  --font-mono: "Geist Mono", ui-monospace, "SF Mono", "Menlo", monospace;
+
+  /* Frosted panels that sit over the boids background */
+  --panel-bg: rgba(255, 255, 255, 0.78);
+  --panel-bg-solid: rgba(255, 255, 255, 0.94);
+  --panel-border: rgba(0, 0, 0, 0.14);
+  --hairline: rgba(0, 0, 0, 0.12);
+
   /* Effects */
   --gray-gradient: rgba(var(--gray-light), 50%), #fff;
 }
@@ -65,6 +75,12 @@
     --text-primary: rgb(var(--gray-dark));
     --text-heading: rgb(var(--black));
 
+    /* Frosted panels that sit over the boids background */
+    --panel-bg: rgba(8, 9, 12, 0.72);
+    --panel-bg-solid: rgba(8, 9, 12, 0.94);
+    --panel-border: rgba(255, 255, 255, 0.16);
+    --hairline: rgba(255, 255, 255, 0.14);
+
     /* Effects */
     --gray-gradient: rgba(var(--gray-light), 50%), #1a1d26;
   }
@@ -75,18 +91,7 @@
    ============================================ */
 
 body {
-  font-family: "Neue Montreal", "Helvetica Neue", "Helvetica", "Arial", sans-serif;
-  /* font-family: "Helvetica Neue", "Helvetica", "Arial", sans-serif; */
-  /* font-family: "Optician Sans", "Helvetica", "Arial", sans-serif; */
-  /* font-family: "Space Grotesk", "Helvetica", "Arial", sans-serif; */
-  /* font-family: "Futura", "Helvetica", "Arial", sans-serif; */
-
-  /* font-family: "ETBookOT", "Helvetica", "Arial", sans-serif; */
-  /* font-family: "SF Pro", "Helvetica", "Arial", sans-serif; */
-  /* font-family:'Courier New', Courier, monospace; */
-  /* font-family:Cochin, Georgia, Times, 'Times New Roman', serif; */
-  /* font-family:Georgia, Times, 'Times New Roman', serif; */
-
+  font-family: var(--font-sans);
   margin: 0;
   padding: 0;
   text-align: left;
@@ -120,8 +125,6 @@ h3,
 h4,
 h5,
 h6 {
-  /* font-family: "Optician Sans", "Helvetica", "Arial", sans-serif; */
-  /* font-family: "Space Grotesk", "Helvetica", "Arial", sans-serif; */
   margin: 0 0 0.5rem 0;
   color: var(--text-heading);
   line-height: 1.2;
@@ -276,4 +279,35 @@ html {
   z-index: 0;
   opacity: 0.5;
   pointer-events: none;
+}
+
+/* Keep page content stacked above the fixed boids canvas */
+header,
+main,
+footer {
+  position: relative;
+  z-index: 1;
+}
+
+/* Small uppercase mono labels (Swiss-style metadata text) */
+.mono {
+  font-family: var(--font-mono);
+  font-size: 0.72rem;
+  font-weight: 500;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+}
+
+/* Frosted panel that keeps the boids background from fighting the text */
+.panel {
+  background: var(--panel-bg);
+  -webkit-backdrop-filter: blur(6px);
+  backdrop-filter: blur(6px);
+  border: 1px solid var(--panel-border);
+}
+
+@supports not (backdrop-filter: blur(1px)) {
+  .panel {
+    background: var(--panel-bg-solid);
+  }
 }

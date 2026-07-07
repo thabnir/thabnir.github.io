@@ -1,0 +1,25 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 800 500" role="img" aria-label="Geometric illustration of city buildings with one highlighted window">
+  <rect width="800" height="500" fill="#0d0e12"/>
+  <g stroke="#ffffff" stroke-opacity="0.05">
+    <path d="M100 0V500M200 0V500M300 0V500M400 0V500M500 0V500M600 0V500M700 0V500"/>
+    <path d="M0 100H800M0 200H800M0 300H800M0 400H800"/>
+  </g>
+  <defs>
+    <pattern id="win" width="38" height="36" patternUnits="userSpaceOnUse">
+      <rect x="8" y="8" width="22" height="18" fill="#ffffff" fill-opacity="0.14"/>
+    </pattern>
+  </defs>
+  <line x1="0" y1="392" x2="800" y2="392" stroke="#ffffff" stroke-opacity="0.3"/>
+  <g>
+    <rect x="128" y="168" width="132" height="224" fill="url(#win)" stroke="#ffffff" stroke-opacity="0.6"/>
+    <rect x="310" y="96" width="170" height="296" fill="url(#win)" stroke="#ffffff" stroke-opacity="0.85" stroke-width="1.5"/>
+    <rect x="530" y="204" width="118" height="188" fill="url(#win)" stroke="#ffffff" stroke-opacity="0.6"/>
+  </g>
+  <rect x="394" y="212" width="22" height="18" fill="#ff2200"/>
+  <g transform="translate(405,60)">
+    <path d="M0 0 C -14 0 -22 10 -22 20 C -22 34 0 52 0 52 C 0 52 22 34 22 20 C 22 10 14 0 0 0 Z" fill="#ff2200"/>
+    <circle cx="0" cy="20" r="8" fill="#0d0e12"/>
+  </g>
+  <rect x="40" y="436" width="9" height="9" fill="#ff2200"/>
+  <text x="62" y="445" font-family="'Geist Mono', ui-monospace, Menlo, monospace" font-size="15" letter-spacing="4" fill="#ffffff" fill-opacity="0.5">FIG. 03 — LISTING RANKER</text>
+</svg>

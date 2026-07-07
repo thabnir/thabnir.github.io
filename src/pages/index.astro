@@ -4,7 +4,83 @@ import Header from "../components/Header.astro";
 import { SITE_DESCRIPTION, SITE_TITLE } from "../consts";
 import { Icon } from "astro-icon/components";
 import BoidsCanvas from "../components/BoidsCanvas.astro";
-const props = Astro.props;
+
+// Swap each `image` for a real screenshot when you have one —
+// drop it in public/images/projects/ and update the path here.
+const projects = [
+  {
+    no: "01",
+    name: "rt",
+    tagline: "Parallel ray tracer",
+    stack: "Rust",
+    year: "2024",
+    // image: "/images/projects/rt.svg",
+    image: "/images/projects/ray-traced-armor.png",
+    alt: "Ray traced spheres illustration",
+    description:
+      "A CPU path tracer capable of rendering scenes with millions of polygons. Uses BVH acceleration, physically based materials, glTF/OBJ mesh loading, live progressive preview, and convenient PNG export.",
+    links: [{ label: "GitHub", href: "https://github.com/thabnir/rt", external: true }],
+  },
+  {
+    no: "02",
+    name: "Boids",
+    tagline: "Running live behind this page",
+    stack: "TypeScript · WebGL",
+    year: "2025",
+    image: "/images/projects/boids.svg",
+    alt: "Flock of boids illustration",
+    description:
+      "The flocking simulation animating this page's background. Thousands of agents on a spatial hash grid following three simple rules from Craig Reynolds' 1986 algorithm.",
+    links: [
+      { label: "How it works", href: "/boids-explained", external: false },
+      { label: "GitHub", href: "https://github.com/thabnir/optic_site", external: true },
+    ],
+  },
+  {
+    no: "03",
+    name: "ApartMatch",
+    tagline: "1st place — MAIS Hacks 2023",
+    stack: "Python · ML",
+    year: "2023",
+    // image: "/images/projects/apartmatch.svg",
+    image: "/images/projects/apartmatch.png",
+    alt: "City buildings with a highlighted window illustration",
+    description:
+      "An apartment-hunting web app that took first place among 300+ hackers, ranking scraped listings with an AI image-captioning model to surface the best homes for you.",
+    links: [{ label: "GitHub", href: "https://github.com/thabnir/apartmatch", external: true }],
+  },
+  {
+    no: "04",
+    name: "LangSonic",
+    tagline: "CNN speech classifier",
+    stack: "Python · TensorFlow",
+    year: "2023",
+    image: "/images/projects/langsonic.svg",
+    alt: "Audio waveform illustration",
+    description:
+      "A convolutional network that identifies the language being spoken in an audio clip, trained on 450,000 Mozilla Common Voice recordings converted to Mel spectrograms.",
+    links: [{ label: "GitHub", href: "https://github.com/thabnir/LangSonic", external: true }],
+  },
+];
+
+const skills = [
+  {
+    label: "Topics",
+    items: ["Real-time graphics", "Physics simulation", "Computer vision", "Machine learning"],
+  },
+  {
+    label: "Languages",
+    items: ["Python", "Rust", "C++", "Java / Kotlin", "TypeScript", "SQL", "Bash"],
+  },
+  {
+    label: "Frameworks",
+    items: ["NumPy", "pandas", "TensorFlow", "Flask", "FastAPI"],
+  },
+  {
+    label: "Tools",
+    items: ["Git", "Docker", "AWS", "Linux"],
+  },
+];
 ---
 
 <!doctype html>
@@ -13,44 +89,422 @@ const props = Astro.props;
     <BaseHead title={SITE_TITLE} description={SITE_DESCRIPTION} />
   </head>
 
-  <div class="boids-background">
-    <BoidsCanvas
-      id="bg-boids"
-      enableFpsLimit={true}
-      fpsLimit={60}
-      nBoids={1750}
-      nBoidsMobile={300}
-      boidSize={1}
-      trailLength={100}
-      drawTrail={true}
-      colorMode="velocity"
-      showVision={false}
-      showStats={false}
-      maxSpeed={1.5}
-      alignmentFactor={0.0065}
-      separationFactor={0.005}
-      cohesionFactor={0.08}
-      enableScrollControl={true}
-      fieldOfView={130}
-    />
-  </div>
   <body>
+    <div class="boids-background" aria-hidden="true">
+      <BoidsCanvas
+        id="bg-boids"
+        enableFpsLimit={true}
+        fpsLimit={60}
+        nBoids={3500}
+        nBoidsMobile={600}
+        boidSize={3}
+        trailLength={100}
+        drawTrail={true}
+        colorMode="velocity"
+        showVision={false}
+        showStats={false}
+        maxSpeed={1.5}
+        alignmentFactor={0.0065}
+        separationFactor={0.005}
+        cohesionFactor={0.08}
+        enableScrollControl={true}
+        fieldOfView={130}
+        cursorMagnetism={0.35}
+        cursorMagnetismRange={400}
+      />
+    </div>
+
     <Header />
+
     <main>
-      <p>
-        I study computer science at <a href="https://www.mcgill.ca/">McGill University</a>.<br />
-        Check out my projects <a href="/blog">here</a>.<br />
-        To get in touch, email me at <a href="mailto:henrylefeb@gmail.com">henrylefeb@gmail.com</a> or message me on <a
-          href="https://www.linkedin.com/in/henry-lefebvre/">LinkedIn</a
-        >.
-      </p>
-      <strong>
-        <a href="/henry-lefebvre-resume.pdf" class="download-link">
-          <Icon name="material-symbols:download" />
-          <span>Download Resume</span>
-        </a>
-      </strong>
+      <!-- Hero -->
+      <section class="hero panel">
+        <p class="hero-kicker mono">Computer Science — B.Sc. Honours, McGill '26</p>
+        <p class="hero-lede">Real-time simulation, rendering, and machine&nbsp;learning.</p>
+        <p class="hero-body">
+          At McGill's Computer Graphics Lab I researched acceleration structures for collision detection on deformable
+          3D meshes. Before that I built computer vision systems for an autonomous underwater robot. 
+          In between, I made a ray tracer, a Mini-C compiler, a Tetris clone, and a few more projects just for fun.
+        </p>
+        <div class="hero-actions">
+          <a class="action mono" href="mailto:henrylefeb@gmail.com">Email</a>
+          <a class="action mono" href="https://github.com/thabnir">GitHub&nbsp;&#8599;</a>
+          <a class="action mono" href="https://www.linkedin.com/in/henry-lefebvre/">LinkedIn&nbsp;&#8599;</a>
+          <a class="action action-primary mono" href="/henry-lefebvre-resume.pdf">
+            <Icon name="material-symbols:download" />
+            R&eacute;sum&eacute; (PDF)
+          </a>
+        </div>
+      </section>
+
+      <!-- Projects -->
+      <section class="section panel" id="projects">
+        <div class="section-head">
+          <h2><span class="section-index mono">01</span>Projects</h2>
+          <span class="section-note mono">Selected work 2023&ndash;2025</span>
+        </div>
+        <div class="project-grid">
+          {
+            projects.map((p) => (
+              <article class="project">
+                <a class="project-media" href={p.links[0].href} target={p.links[0].external ? "_blank" : undefined}>
+                  <img src={p.image} alt={p.alt} width="800" height="500" loading="lazy" />
+                </a>
+                <div class="project-meta mono">
+                  <span class="project-no">{p.no}</span>
+                  <span>{p.stack}</span>
+                  <span class="project-year">{p.year}</span>
+                </div>
+                <h3 class="project-title">
+                  <a href={p.links[0].href} target={p.links[0].external ? "_blank" : undefined}>
+                    {p.name}
+                  </a>
+                </h3>
+                <p class="project-tagline mono">{p.tagline}</p>
+                <p class="project-desc">{p.description}</p>
+                <div class="project-links mono">
+                  {p.links.map((l) => (
+                    <a href={l.href} target={l.external ? "_blank" : undefined}>
+                      {l.label}
+                      {l.external && <>&nbsp;&#8599;</>}
+                    </a>
+                  ))}
+                </div>
+              </article>
+            ))
+          }
+        </div>
+      </section>
+
+      <!-- Skills -->
+      <section class="section panel" id="skills">
+        <div class="section-head">
+          <h2><span class="section-index mono">02</span>Skills</h2>
+          <span class="section-note mono">Tools</span>
+        </div>
+        <div class="skills-grid">
+          {
+            skills.map((col) => (
+              <div class="skill-col">
+                <h3 class="skill-label mono">{col.label}</h3>
+                <ul class="skill-list">
+                  {col.items.map((item) => (
+                    <li>{item}</li>
+                  ))}
+                </ul>
+              </div>
+            ))
+          }
+        </div>
+      </section>
+
+      <!-- Contact -->
+      <footer class="section panel contact">
+        <div class="section-head">
+          <h2><span class="section-index mono">03</span>Contact</h2>
+          <span class="section-note mono">Get in touch</span>
+        </div>
+        <a class="contact-email" href="mailto:henrylefeb@gmail.com">henrylefeb@gmail.com</a>
+        <div class="colophon mono">
+          <span>&copy; 2026 Henry Lefebvre</span>
+          <span>Set in Neue Montreal &amp; Geist Mono</span>
+          <span>Background: 3,500 boids &middot; <a href="/boids-explained">how it works</a></span>
+        </div>
+      </footer>
     </main>
+
+    <style>
+      main {
+        padding-top: 1.5rem;
+        padding-bottom: 3rem;
+        display: flex;
+        flex-direction: column;
+        gap: 1.5rem;
+      }
+
+      .panel {
+        padding: 2.5rem;
+      }
+
+      /* ---------- Hero ---------- */
+
+      .hero-kicker {
+        color: var(--accent);
+        margin: 0 0 1.25rem;
+      }
+
+      .hero-lede {
+        font-size: clamp(1.5rem, 3.2vw, 2.3rem);
+        font-weight: 500;
+        line-height: 1.25;
+        letter-spacing: -0.01em;
+        color: var(--text-heading);
+        max-width: 24ch;
+        margin: 0 0 1.25rem;
+      }
+
+      .hero-body {
+        font-size: 1.05rem;
+        line-height: 1.65;
+        max-width: 62ch;
+        margin: 0 0 2rem;
+      }
+
+      .hero-actions {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 0.75rem;
+      }
+
+      .action {
+        display: inline-flex;
+        align-items: center;
+        gap: 0.4rem;
+        padding: 0.7rem 1.1rem;
+        border: 1px solid var(--panel-border);
+        color: var(--text-heading);
+        transition:
+          background-color 0.15s ease,
+          border-color 0.15s ease,
+          color 0.15s ease;
+      }
+
+      .action:hover {
+        border-color: var(--accent);
+        color: var(--accent);
+      }
+
+      .action-primary {
+        background: var(--accent);
+        border-color: var(--accent);
+        color: #fff;
+      }
+
+      .action-primary:hover {
+        background: var(--accent-dark);
+        border-color: var(--accent-dark);
+        color: #fff;
+      }
+
+      .action [data-icon] {
+        font-size: 1.1em;
+      }
+
+      /* ---------- Section chrome ---------- */
+
+      .section-head {
+        display: flex;
+        align-items: baseline;
+        justify-content: space-between;
+        gap: 1rem;
+        border-bottom: 2px solid var(--text-heading);
+        padding-bottom: 0.75rem;
+        margin-bottom: 2rem;
+      }
+
+      .section-head h2 {
+        font-size: 1.5rem;
+        font-weight: 700;
+        letter-spacing: -0.01em;
+        margin: 0;
+      }
+
+      .section-index {
+        color: var(--accent);
+        margin-right: 1rem;
+        vertical-align: 0.2em;
+      }
+
+      .section-note {
+        color: rgb(var(--gray));
+        text-align: right;
+      }
+
+      /* ---------- Projects ---------- */
+
+      .project-grid {
+        display: grid;
+        grid-template-columns: repeat(2, 1fr);
+        gap: 3rem 2.5rem;
+      }
+
+      .project-media {
+        display: block;
+        border: 1px solid var(--panel-border);
+        line-height: 0;
+      }
+
+      .project-media img {
+        width: 100%;
+        height: auto;
+        aspect-ratio: 16 / 10;
+        object-fit: cover;
+        transition: opacity 0.2s ease;
+      }
+
+      .project-media:hover img {
+        opacity: 0.85;
+      }
+
+      .project-meta {
+        display: flex;
+        align-items: baseline;
+        gap: 1.25rem;
+        color: rgb(var(--gray));
+        padding: 0.75rem 0 0;
+      }
+
+      .project-no {
+        color: var(--accent);
+      }
+
+      .project-year {
+        margin-left: auto;
+      }
+
+      .project-title {
+        font-size: 1.45rem;
+        font-weight: 700;
+        letter-spacing: -0.01em;
+        margin: 0.35rem 0 0.15rem;
+      }
+
+      .project-title a {
+        color: var(--text-heading);
+        transition: color 0.15s ease;
+      }
+
+      .project-title a:hover {
+        color: var(--accent);
+      }
+
+      .project-tagline {
+        color: var(--accent);
+        margin: 0 0 0.6rem;
+      }
+
+      .project-desc {
+        font-size: 0.98rem;
+        line-height: 1.6;
+        margin: 0 0 0.9rem;
+      }
+
+      .project-links {
+        display: flex;
+        gap: 1.5rem;
+      }
+
+      .project-links a {
+        color: var(--text-heading);
+        border-bottom: 1px solid var(--hairline);
+        padding-bottom: 2px;
+        transition:
+          color 0.15s ease,
+          border-color 0.15s ease;
+      }
+
+      .project-links a:hover {
+        color: var(--accent);
+        border-color: var(--accent);
+      }
+
+      /* ---------- Skills ---------- */
+
+      .skills-grid {
+        display: grid;
+        grid-template-columns: repeat(4, 1fr);
+        gap: 2.5rem;
+      }
+
+      .skill-label {
+        font-size: 0.72rem;
+        color: var(--accent);
+        border-bottom: 1px solid var(--hairline);
+        padding-bottom: 0.6rem;
+        margin: 0 0 0.25rem;
+      }
+
+      .skill-list {
+        list-style: none;
+        margin: 0;
+        padding: 0;
+      }
+
+      .skill-list li {
+        font-size: 0.95rem;
+        padding: 0.45rem 0;
+        border-bottom: 1px solid var(--hairline);
+      }
+
+      .skill-list li:last-child {
+        border-bottom: none;
+      }
+
+      /* ---------- Contact ---------- */
+
+      .contact-email {
+        display: inline-block;
+        font-size: clamp(1.3rem, 3vw, 2rem);
+        font-weight: 500;
+        letter-spacing: -0.01em;
+        color: var(--text-heading);
+        border-bottom: 2px solid var(--accent);
+        padding-bottom: 0.15rem;
+        margin-bottom: 2.5rem;
+        transition: color 0.15s ease;
+      }
+
+      .contact-email:hover {
+        color: var(--accent);
+      }
+
+      .colophon {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 0.5rem 2rem;
+        color: rgb(var(--gray));
+        border-top: 1px solid var(--hairline);
+        padding-top: 1rem;
+      }
+
+      .colophon a {
+        color: inherit;
+        text-decoration: underline;
+        text-underline-offset: 3px;
+      }
+
+      .colophon a:hover {
+        color: var(--accent);
+      }
+
+      /* ---------- Responsive ---------- */
+
+      @media (max-width: 900px) {
+        .project-grid {
+          grid-template-columns: 1fr;
+          gap: 2.5rem;
+        }
+
+        .skills-grid {
+          grid-template-columns: repeat(2, 1fr);
+          gap: 2rem;
+        }
+      }
+
+      @media (max-width: 720px) {
+        .panel {
+          padding: 1.5rem 1.25rem;
+        }
+
+        main {
+          gap: 1rem;
+        }
+
+        .section-note {
+          display: none;
+        }
+      }
+    </style>
 
     <script>
       /**

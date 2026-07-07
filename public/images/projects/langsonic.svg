@@ -1,0 +1,49 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 800 500" role="img" aria-label="Geometric illustration of an audio waveform">
+  <rect width="800" height="500" fill="#0d0e12"/>
+  <g stroke="#ffffff" stroke-opacity="0.05">
+    <path d="M100 0V500M200 0V500M300 0V500M400 0V500M500 0V500M600 0V500M700 0V500"/>
+    <path d="M0 100H800M0 200H800M0 300H800M0 400H800"/>
+  </g>
+  <line x1="40" y1="250" x2="760" y2="250" stroke="#ffffff" stroke-opacity="0.2"/>
+  <g stroke="#ffffff" stroke-opacity="0.75" stroke-width="8" stroke-linecap="butt">
+    <line x1="60" y1="238" x2="60" y2="262"/>
+    <line x1="80" y1="228" x2="80" y2="272"/>
+    <line x1="100" y1="234" x2="100" y2="266"/>
+    <line x1="120" y1="220" x2="120" y2="280"/>
+    <line x1="140" y1="206" x2="140" y2="294"/>
+    <line x1="160" y1="222" x2="160" y2="278"/>
+    <line x1="180" y1="194" x2="180" y2="306"/>
+    <line x1="200" y1="212" x2="200" y2="288"/>
+    <line x1="220" y1="180" x2="220" y2="320"/>
+    <line x1="240" y1="198" x2="240" y2="302"/>
+    <line x1="260" y1="216" x2="260" y2="284"/>
+    <line x1="280" y1="186" x2="280" y2="314"/>
+    <line x1="300" y1="160" x2="300" y2="340"/>
+    <line x1="320" y1="192" x2="320" y2="308"/>
+    <line x1="340" y1="174" x2="340" y2="326"/>
+    <line x1="360" y1="140" x2="360" y2="360"/>
+    <line x1="480" y1="162" x2="480" y2="338"/>
+    <line x1="500" y1="190" x2="500" y2="310"/>
+    <line x1="520" y1="156" x2="520" y2="344"/>
+    <line x1="540" y1="202" x2="540" y2="298"/>
+    <line x1="560" y1="184" x2="560" y2="316"/>
+    <line x1="580" y1="214" x2="580" y2="286"/>
+    <line x1="600" y1="196" x2="600" y2="304"/>
+    <line x1="620" y1="224" x2="620" y2="276"/>
+    <line x1="640" y1="208" x2="640" y2="292"/>
+    <line x1="660" y1="232" x2="660" y2="268"/>
+    <line x1="680" y1="220" x2="680" y2="280"/>
+    <line x1="700" y1="240" x2="700" y2="260"/>
+    <line x1="720" y1="232" x2="720" y2="268"/>
+    <line x1="740" y1="244" x2="740" y2="256"/>
+  </g>
+  <g stroke="#ff2200" stroke-width="8" stroke-linecap="butt">
+    <line x1="380" y1="166" x2="380" y2="334"/>
+    <line x1="400" y1="120" x2="400" y2="380"/>
+    <line x1="420" y1="152" x2="420" y2="348"/>
+    <line x1="440" y1="132" x2="440" y2="368"/>
+    <line x1="460" y1="178" x2="460" y2="322"/>
+  </g>
+  <rect x="40" y="436" width="9" height="9" fill="#ff2200"/>
+  <text x="62" y="445" font-family="'Geist Mono', ui-monospace, Menlo, monospace" font-size="15" letter-spacing="4" fill="#ffffff" fill-opacity="0.5">FIG. 04 — MEL SPECTROGRAM</text>
+</svg>

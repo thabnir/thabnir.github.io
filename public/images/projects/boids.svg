@@ -1,0 +1,31 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 800 500" role="img" aria-label="Geometric illustration of a flock of boids">
+  <rect width="800" height="500" fill="#0d0e12"/>
+  <g stroke="#ffffff" stroke-opacity="0.05">
+    <path d="M100 0V500M200 0V500M300 0V500M400 0V500M500 0V500M600 0V500M700 0V500"/>
+    <path d="M0 100H800M0 200H800M0 300H800M0 400H800"/>
+  </g>
+  <path d="M-20 350 C 180 250, 330 390, 540 230 S 740 110, 830 150" fill="none" stroke="#ffffff" stroke-opacity="0.18" stroke-dasharray="2 8"/>
+  <path d="M-20 300 C 200 210, 360 330, 570 180 S 760 70, 830 100" fill="none" stroke="#ffffff" stroke-opacity="0.1" stroke-dasharray="2 8"/>
+  <circle cx="560" cy="222" r="90" fill="none" stroke="#ffffff" stroke-opacity="0.12" stroke-dasharray="3 7"/>
+  <g fill="#ffffff" fill-opacity="0.85">
+    <path d="M0 -10 L7 10 L-7 10 Z" transform="translate(120,318) rotate(58)"/>
+    <path d="M0 -10 L7 10 L-7 10 Z" transform="translate(175,288) rotate(62)"/>
+    <path d="M0 -10 L7 10 L-7 10 Z" transform="translate(150,352) rotate(50)"/>
+    <path d="M0 -10 L7 10 L-7 10 Z" transform="translate(238,300) rotate(74)"/>
+    <path d="M0 -10 L7 10 L-7 10 Z" transform="translate(300,330) rotate(80)"/>
+    <path d="M0 -10 L7 10 L-7 10 Z" transform="translate(345,300) rotate(72)"/>
+    <path d="M0 -10 L7 10 L-7 10 Z" transform="translate(395,320) rotate(64)"/>
+    <path d="M0 -10 L7 10 L-7 10 Z" transform="translate(452,285) rotate(56)"/>
+    <path d="M0 -10 L7 10 L-7 10 Z" transform="translate(505,255) rotate(52)"/>
+    <path d="M0 -10 L7 10 L-7 10 Z" transform="translate(590,235) rotate(60)"/>
+    <path d="M0 -10 L7 10 L-7 10 Z" transform="translate(615,185) rotate(48)"/>
+    <path d="M0 -10 L7 10 L-7 10 Z" transform="translate(668,160) rotate(55)"/>
+    <path d="M0 -10 L7 10 L-7 10 Z" transform="translate(710,120) rotate(44)"/>
+    <path d="M0 -10 L7 10 L-7 10 Z" transform="translate(238,140) rotate(120)" fill-opacity="0.4"/>
+    <path d="M0 -10 L7 10 L-7 10 Z" transform="translate(90,120) rotate(150)" fill-opacity="0.4"/>
+    <path d="M0 -10 L7 10 L-7 10 Z" transform="translate(690,340) rotate(-30)" fill-opacity="0.4"/>
+  </g>
+  <path d="M0 -11 L8 11 L-8 11 Z" transform="translate(560,222) rotate(58)" fill="#ff2200"/>
+  <rect x="40" y="436" width="9" height="9" fill="#ff2200"/>
+  <text x="62" y="445" font-family="'Geist Mono', ui-monospace, Menlo, monospace" font-size="15" letter-spacing="4" fill="#ffffff" fill-opacity="0.5">FIG. 02 — EMERGENT FLOCKING</text>
+</svg>

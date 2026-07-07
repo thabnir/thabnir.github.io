@@ -6,22 +6,18 @@ import HeaderLink from "./HeaderLink.astro";
 <header>
   <div class="header-inner">
     <div class="logo-row">
-      <h1><a href="/">{SITE_TITLE}</a></h1>
+      <h1><a href="/">{SITE_TITLE}<span class="dot">.</span></a></h1>
     </div>
-  </div>
-  <hr class="header-divider" />
-  <div class="header-inner">
-    <nav>
-      <HeaderLink href="/">About</HeaderLink>
-      <span class="nav-separator">|</span>
-      <HeaderLink href="/blog">Blog</HeaderLink>
-      <span class="nav-separator">|</span>
-      <HeaderLink href="/boids-explained">Boids</HeaderLink>
-      <span class="nav-separator">|</span>
-      <HeaderLink href="https://github.com/thabnir">GitHub</HeaderLink>
-      <span class="nav-separator">|</span>
-      <HeaderLink href="https://linkedin.com/in/henry-lefebvre">LinkedIn</HeaderLink>
-    </nav>
+    <hr class="header-divider" />
+    <div class="nav-row">
+      <nav>
+        <HeaderLink href="/">Index</HeaderLink>
+        <HeaderLink href="/boids-explained">Boids</HeaderLink>
+        <HeaderLink href="https://github.com/thabnir">GitHub&nbsp;&#8599;</HeaderLink>
+        <HeaderLink href="https://linkedin.com/in/henry-lefebvre">LinkedIn&nbsp;&#8599;</HeaderLink>
+      </nav>
+      <span class="header-meta mono">MINNEAPOLIS&nbsp;&nbsp;44.98&deg;N&nbsp;93.15&deg;W</span>
+    </div>
   </div>
 
   <style>
@@ -43,12 +39,13 @@ import HeaderLink from "./HeaderLink.astro";
       display: flex;
       align-items: center;
       justify-content: space-between;
-      padding: 0.5em 0 0.25em;
+      padding: 0.5em 0 0.15em;
     }
 
     h1 {
       font-size: min(9vw, 128px);
       letter-spacing: -0.02em;
+      margin: 0;
     }
 
     h1 a {
@@ -60,24 +57,35 @@ import HeaderLink from "./HeaderLink.astro";
       color: var(--text-heading);
     }
 
+    .dot {
+      color: var(--accent);
+    }
+
     .header-divider {
       border: none;
       border-top: 2px solid var(--text-heading);
-      margin: -0.5em 0 0;
+      margin: 0;
       width: 100%;
+    }
+
+    .nav-row {
+      display: flex;
+      align-items: baseline;
+      justify-content: space-between;
+      gap: 1em;
+      padding: 0.8em 0 0.5em;
     }
 
     nav {
       display: flex;
-      align-items: center;
-      gap: 0.5em;
-      padding: 0.5em 0;
+      align-items: baseline;
+      flex-wrap: wrap;
+      gap: 1.75em;
     }
 
-    .nav-separator {
-      color: var(--text-heading);
-      font-weight: 300;
-      user-select: none;
+    .header-meta {
+      color: rgb(var(--gray));
+      white-space: nowrap;
     }
 
     @media (max-width: 720px) {
@@ -89,7 +97,11 @@ import HeaderLink from "./HeaderLink.astro";
         font-size: clamp(1.75rem, 10vw, 2.5rem);
       }
 
-      .social-links {
+      nav {
+        gap: 1.25em;
+      }
+
+      .header-meta {
         display: none;
       }
     }
