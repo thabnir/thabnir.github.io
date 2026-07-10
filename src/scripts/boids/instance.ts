@@ -126,6 +126,7 @@ export class BoidsInstance {
     this.chooseBackend();
     this.sizeCanvas();
     this.sim.init(this.width, this.height);
+    this.selectFocusedBoid();
     this.renderer.syncBuffers();
     this.setupEventListeners();
     if (this.params.showControls) this.setupControls();
@@ -197,6 +198,12 @@ export class BoidsInstance {
       },
       { passive: true },
     );
+    window.addEventListener("touchend", () => {
+      this.isCursorActive = false;
+    });
+    window.addEventListener("touchcancel", () => {
+      this.isCursorActive = false;
+    });
 
     const observer = new IntersectionObserver(
       (entries) => {
@@ -217,6 +224,40 @@ export class BoidsInstance {
       this.sim.setTrailLength(newParams.trailLength);
       this.renderer.syncBuffers();
     }
+  }
+
+  /** Choose a tracked boid with an active local neighbourhood for live explainers. */
+  private selectFocusedBoid(): void {
+    if (!this.params.explanationMode) return;
+
+    const sim = this.sim;
+    const range2 = this.params.visualRange * this.params.visualRange;
+    const desiredNeighbors = Math.min(6, Math.max(3, Math.round(sim.count / 60)));
+    let selected = this.params.visionBoidIndex;
+    let closestToDesired = Infinity;
+    let selectedNeighborCount = -1;
+
+    for (let i = 0; i < sim.count; i++) {
+      let neighbors = 0;
+      const x = sim.posX[i];
+      const y = sim.posY[i];
+      for (let j = 0; j < sim.count; j++) {
+        if (i === j) continue;
+        const dx = sim.posX[j] - x;
+        const dy = sim.posY[j] - y;
+        const dist2 = dx * dx + dy * dy;
+        if (dist2 > 0 && dist2 <= range2) neighbors++;
+      }
+      if (neighbors === 0) continue;
+      const score = Math.abs(neighbors - desiredNeighbors);
+      if (score < closestToDesired || (score === closestToDesired && neighbors > selectedNeighborCount)) {
+        selected = i;
+        closestToDesired = score;
+        selectedNeighborCount = neighbors;
+      }
+    }
+
+    this.params.visionBoidIndex = selected;
   }
 
   private buildStepContext(): SimStepContext {
@@ -409,6 +450,7 @@ export class BoidsInstance {
     if (resetBtn) {
       resetBtn.addEventListener("click", () => {
         this.sim.init(this.width, this.height);
+        this.selectFocusedBoid();
         this.renderer.syncBuffers();
       });
     }

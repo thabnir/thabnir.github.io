@@ -34,6 +34,8 @@ export interface BoidsConfig {
   showVisionCone: boolean;
   visionBoidIndex: number;
   followBoid: boolean;
+  /** Optional vector overlay for a focused rule demonstration. */
+  explanationMode?: "separation" | "alignment" | "cohesion" | "combined";
   zoomLevel: number;
   cameraSmoothing: number;
   zoomSmoothing: number;

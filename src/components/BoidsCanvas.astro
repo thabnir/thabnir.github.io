@@ -30,6 +30,8 @@ export interface Props {
   visionBoidIndex?: number;
   // Camera
   followBoid?: boolean;
+  // Focused rule demo
+  explanationMode?: "separation" | "alignment" | "cohesion" | "combined";
   zoomLevel?: number;
   cameraSmoothing?: number;
   zoomSmoothing?: number;
@@ -71,6 +73,7 @@ const {
   showVisionCone = true,
   visionBoidIndex = 0,
   followBoid = false,
+  explanationMode,
   zoomLevel = 1.0,
   cameraSmoothing = 0.1,
   zoomSmoothing = 0.05,
@@ -116,6 +119,7 @@ const toggleBtnId = `${id}-toggle`;
     showVisionCone,
     visionBoidIndex,
     followBoid,
+    explanationMode,
     zoomLevel,
     cameraSmoothing,
     zoomSmoothing,

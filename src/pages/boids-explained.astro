@@ -1,84 +1,39 @@
 ---
-import BaseHead from "../components/BaseHead.astro";
-import Header from "../components/Header.astro";
-import BoidsCanvas from "../components/BoidsCanvas.astro";
-import { SITE_TITLE } from "../consts";
 import { Prism } from "@astrojs/prism";
-import { Icon } from "astro-icon/components";
+import BoidsSocialImage from "../assets/boids-og.png";
+import BaseHead from "../components/BaseHead.astro";
+import BoidsCanvas from "../components/BoidsCanvas.astro";
+import Header from "../components/Header.astro";
+import { SITE_TITLE } from "../consts";
+import "../styles/boids-explained.css";
 
 const CODE_SEPARATE = `function separate(boid, neighbors) {
-  let steer = { x: 0, y: 0 };
-
-  for (const other of neighbors) {
-    if (distance(boid, other) < MIN_DISTANCE) {
-      // Flee from nearby boids
-      steer.x += boid.x - other.x;
-      steer.y += boid.y - other.y;
-    }
-  }
-
-  return steer;
+  return neighbors
+    .filter((other) => distance(boid, other) < MIN_DISTANCE)
+    .reduce((steer, other) => ({
+      x: steer.x + boid.x - other.x,
+      y: steer.y + boid.y - other.y,
+    }), { x: 0, y: 0 });
 }`;
 
 const CODE_ALIGN = `function align(boid, neighbors) {
-  let avgVelocity = { x: 0, y: 0 };
-  let count = 0;
+  if (neighbors.length === 0) return { x: 0, y: 0 };
 
-  for (const other of neighbors) {
-    if (distance(boid, other) < VISUAL_RANGE) {
-      avgVelocity.x += other.dx;
-      avgVelocity.y += other.dy;
-      count++;
-    }
-  }
-
-  // Steer toward average direction
-  return normalize(avgVelocity);
+  const average = mean(neighbors.map((other) => other.velocity));
+  return {
+    x: average.x - boid.velocity.x,
+    y: average.y - boid.velocity.y,
+  };
 }`;
 
 const CODE_COHERE = `function cohere(boid, neighbors) {
-  let center = { x: 0, y: 0 };
-  let count = 0;
+  if (neighbors.length === 0) return { x: 0, y: 0 };
 
-  for (const other of neighbors) {
-    if (distance(boid, other) < VISUAL_RANGE) {
-      center.x += other.x;
-      center.y += other.y;
-      count++;
-    }
-  }
-
-  // Steer toward flock center
-  center.x /= count;
-  center.y /= count;
-  return steerToward(boid, center);
-}`;
-
-const CODE_SPATIAL_HASH = `class SpatialHashGrid {
-  findNearby(x, y, range) {
-    const nearby = [];
-    const cellRadius = Math.ceil(range / this.cellSize);
-
-    // Only check cells within range
-    for (let dx = -cellRadius; dx <= cellRadius; dx++) {
-      for (let dy = -cellRadius; dy <= cellRadius; dy++) {
-        const cell = this.getCell(x + dx, y + dy);
-        if (cell) nearby.push(...cell);
-      }
-    }
-
-    return nearby;
-  }
-}`;
-
-const CODE_UPDATE = `function update(boid, neighbors) {
-  // Apply all three rules
-  boid.velocity += separate(boid, neighbors);
-  boid.velocity += align(boid, neighbors);
-  boid.velocity += cohere(boid, neighbors);
-
-  // And update the boid's position
-  boid.position += boid.velocity;
+  const center = mean(neighbors.map((other) => other.position));
+  return {
+    x: center.x - boid.position.x,
+    y: center.y - boid.position.y,
+  };
 }`;
 ---
 
@@ -86,1575 +41,717 @@ const CODE_UPDATE = `function update(boid, neighbors) {
 <html lang="en">
   <head>
     <BaseHead
-      title={`Boids - ${SITE_TITLE}`}
-      description="An interactive exploration of emergent flocking behavior through Craig Reynolds' Boids algorithm"
+      title={`Boids — An Interactive Explainer | ${SITE_TITLE}`}
+      description="See how separation, alignment, and cohesion turn local decisions into lifelike flocking — then tune the rules yourself."
+      image={BoidsSocialImage}
     />
-    <style>
-      /*
-        NOTE: this page uses Astro's scoped CSS.
-        Defining variables on :root inside scoped CSS does NOT reliably apply to the
-        actual document root, so var(--code-*) ended up undefined and Prism tokens
-        looked “unhighlighted”.
-
-        Define variables on a real element in this page instead.
-      */
-      .content-wrapper {
-        --section-height: 100vh;
-
-        /* Light mode overlays (default in this site) */
-        --bg-overlay: rgba(255, 255, 255, 0.92);
-        --bg-overlay-light: rgba(255, 255, 255, 0.55);
-
-        /* Swiss-style code palette (light mode) */
-        --code-keyword: var(--accent);
-        --code-function: rgb(var(--black));
-        --code-comment: rgba(var(--gray), 0.9);
-        --code-number: #0b6bcb;
-        --code-string: #0b6bcb;
-        --code-operator: rgba(var(--gray), 0.95);
-
-        --code-punctuation: rgba(var(--gray), 0.9);
-
-        /* Layout spacing standardization */
-        --spacing-mobile: 1.5rem;
-        --spacing-desktop: 2rem;
-      }
-
-      /* Dark mode overlays */
-      @media (prefers-color-scheme: dark) {
-        .content-wrapper {
-          --bg-overlay: rgba(0, 0, 0, 0.9);
-          --bg-overlay-light: rgba(0, 0, 0, 0.4);
-
-          /* Swiss-style code palette (dark mode) */
-          --code-keyword: var(--accent);
-          --code-function: rgb(var(--black));
-          --code-comment: rgba(var(--gray), 0.85);
-          --code-number: #79c0ff;
-          --code-string: #79c0ff;
-          --code-operator: rgba(var(--gray-dark), 0.95);
-          --code-punctuation: rgba(var(--gray-dark), 0.85);
-        }
-      }
-
-      html {
-        scroll-behavior: smooth;
-        overscroll-behavior-y: none;
-        background-color: var(--bg-primary);
-      }
-
-      /* Fixed background boids - always visible at partial opacity.
-         Sections that need to hide them use their own solid backgrounds. */
-      .boids-background {
-        position: fixed;
-        top: 0;
-        left: 0;
-        width: 100vw;
-        height: 100vh;
-        z-index: 0;
-        opacity: 0.5;
-        pointer-events: none;
-      }
-
-      /* Hero section */
-      .hero {
-        position: relative;
-        height: 100vh;
-        display: flex;
-        flex-direction: column;
-        justify-content: center;
-        align-items: center;
-        text-align: center;
-        padding: 2rem;
-        box-sizing: border-box;
-      }
-
-      .hero-title {
-        font-size: clamp(4rem, 15vw, 12rem);
-        font-weight: 900;
-        letter-spacing: -0.03em;
-        line-height: 0.9;
-        margin: 0;
-        text-transform: uppercase;
-        color: var(--text-heading);
-      }
-
-      .hero-subtitle {
-        font-size: clamp(1rem, 2.5vw, 1.5rem);
-        font-weight: 400;
-        letter-spacing: 0.2em;
-        text-transform: uppercase;
-        margin-top: 2rem;
-        opacity: 0.7;
-      }
-
-      .scroll-indicator {
-        position: absolute;
-        left: 50%;
-        bottom: calc(7rem + env(safe-area-inset-bottom, 0px));
-        transform: translateX(-50%);
-        display: flex;
-        flex-direction: column;
-        align-items: center;
-        gap: 0.5rem;
-        opacity: 0.5;
-        text-decoration: none;
-        color: inherit;
-        transition: opacity 0.2s ease;
-        cursor: pointer;
-      }
-
-      .scroll-indicator:hover {
-        opacity: 1;
-      }
-
-      /* Bounce the text + arrow together without interfering with centering transforms. */
-      .scroll-indicator-inner {
-        display: flex;
-        flex-direction: column;
-        align-items: center;
-        gap: 0.5rem;
-        animation: bounce 2s infinite;
-        will-change: transform;
-      }
-
-      .scroll-indicator span {
-        font-size: 0.75rem;
-        letter-spacing: 0.15em;
-        text-transform: uppercase;
-      }
-
-      .scroll-arrow {
-        width: 24px;
-        height: 24px;
-        border-right: 2px solid currentColor;
-        border-bottom: 2px solid currentColor;
-        transform: rotate(45deg);
-      }
-
-      @keyframes bounce {
-        0%,
-        100% {
-          transform: translateY(0);
-        }
-        50% {
-          transform: translateY(8px);
-        }
-      }
-
-      .jump-link {
-        position: fixed;
-        top: 2rem;
-        right: 2rem;
-        z-index: 100;
-        padding: 0.75rem 1.5rem;
-        background: var(--bg-primary, rgba(0, 0, 0, 0.8));
-        border: 1px solid var(--accent, #ff3c00);
-        color: var(--text-primary, #fff);
-        font-size: 0.75rem;
-        font-weight: 500;
-        letter-spacing: 0.1em;
-        text-transform: uppercase;
-        text-decoration: none;
-        transition: all 0.2s ease;
-      }
-
-      .jump-link:hover {
-        background: var(--accent, #ff3c00);
-        color: #000;
-      }
-
-      /* Section styling */
-      .section {
-        min-height: var(--section-height);
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        padding: 4rem var(--spacing-desktop);
-        box-sizing: border-box;
-        position: relative;
-      }
-
-      /* Increase vertical padding on mobile for better spacing */
-      @media (max-width: 768px) {
-        .section {
-          padding: 6rem var(--spacing-mobile);
-        }
-
-        /* STRICTLY reset demo section padding so overlay handles it alone.
-           This prevents "double padding" (1.5rem from parent + 1.5rem from overlay). */
-        .demo-section {
-          padding: 0;
-        }
-      }
-
-      .section-content {
-        max-width: 900px;
-        width: 100%;
-      }
-
-      .section-number {
-        font-size: 0.75rem;
-        font-weight: 700;
-        letter-spacing: 0.2em;
-        color: var(--accent, #ff3c00);
-        margin-bottom: 1rem;
-      }
-
-      .section-title {
-        font-size: clamp(2rem, 5vw, 4rem);
-        font-weight: 800;
-        letter-spacing: -0.02em;
-        line-height: 1.1;
-        margin: 0 0 2rem 0;
-      }
-
-      .section-text {
-        font-size: 1.25rem;
-        line-height: 1.8;
-        opacity: 0.85;
-        max-width: 65ch;
-      }
-
-      .section-text p {
-        margin: 0 0 1.5rem 0;
-      }
-
-      /* Split layout */
-      .split-section {
-        display: grid;
-        grid-template-columns: 1fr 1fr;
-        gap: 4rem;
-        align-items: center;
-      }
-
-      @media (max-width: 900px) {
-        .split-section {
-          grid-template-columns: 1fr;
-          gap: 2rem;
-        }
-      }
-
-      /*
-        Code blocks are rendered by the <Prism /> component.
-        In Astro, scoped styles compile to selectors like:
-          .code-block[data-astro-cid-xxxx]
-        but Prism's generated <pre> does NOT carry this page's cid attribute.
-        Therefore, the rules below must be global.
-      */
-      :global(pre.code-block) {
-        box-sizing: border-box;
-        width: 100%;
-        max-width: 100%;
-        margin: 1.5rem 0;
-        padding: 1.25rem 1.25rem;
-
-        /* background: rgba(var(--gray-light), 0.8); */
-        /* background: var(--bg-primary); */
-        /* background: rgba(var(--bg-primary), 1); */
-        /* border: 1px solid rgba(var(--gray), 0.32); */
-
-        border-left: 4px solid var(--accent, #ff3c00);
-        border-radius: 0;
-
-        font-family:
-          "Geist Mono", ui-monospace, "SF Mono", SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono",
-          "Courier New", monospace;
-        font-size: 0.9rem;
-        line-height: 1.65;
-        letter-spacing: 0;
-        font-variant-ligatures: none;
-        tab-size: 2;
-        color: var(--text-primary);
-
-        overflow-x: auto;
-        -webkit-overflow-scrolling: touch;
-      }
-
-      /* Separation demo: slightly more opaque code background for readability. */
-      :global(.content-wrapper section[data-section="separation"] pre.code-block) {
-        background: rgba(var(--gray-light), 0.26);
-        border-color: rgba(var(--gray), 0.38);
-      }
-
-      :global(pre.code-block > code) {
-        font-family: inherit;
-        font-size: inherit;
-        display: block;
-        white-space: pre;
-      }
-
-      /* PrismJS token colors */
-      :global(pre.code-block .token.keyword),
-      :global(pre.code-block .token.class-name) {
-        color: var(--code-keyword);
-        font-weight: 650;
-      }
-
-      :global(pre.code-block .token.function) {
-        color: var(--code-function);
-        font-weight: 650;
-      }
-
-      :global(pre.code-block .token.comment) {
-        color: var(--code-comment);
-        font-style: italic;
-      }
-
-      :global(pre.code-block .token.number) {
-        color: var(--code-number);
-      }
-
-      :global(pre.code-block .token.string) {
-        color: var(--code-string);
-      }
-
-      :global(pre.code-block .token.operator) {
-        color: var(--code-operator);
-      }
-
-      :global(pre.code-block .token.punctuation) {
-        color: var(--code-punctuation);
-      }
-
-      :global(pre.code-block .token.constant),
-      :global(pre.code-block .token.boolean) {
-        color: var(--code-keyword);
-        font-weight: 650;
-      }
-
-      :global(pre.code-block .token.parameter),
-      :global(pre.code-block .token.property),
-      :global(pre.code-block .token.literal-property) {
-        color: var(--text-primary);
-      }
-
-      /* Demo section with embedded boids */
-      .demo-section {
-        position: relative;
-        min-height: 100vh;
-        /* RESET padding: overlay handles the spacing internally */
-        padding: 0;
-        overflow: hidden;
-        /* Solid background hides the fixed background boids layer */
-        background: var(--bg-primary);
-      }
-
-      /* Smooth fade-in/out edges so demo sections don't "pop" */
-      .demo-section::before {
-        content: "";
-        position: absolute;
-        top: -120px;
-        left: 0;
-        right: 0;
-        height: 120px;
-        background: linear-gradient(to bottom, transparent, var(--bg-primary));
-        pointer-events: none;
-        z-index: 1;
-      }
-
-      .demo-section::after {
-        content: "";
-        position: absolute;
-        bottom: -120px;
-        left: 0;
-        right: 0;
-        height: 120px;
-        background: linear-gradient(to top, transparent, var(--bg-primary));
-        pointer-events: none;
-        z-index: 1;
-      }
-
-      /* Override the generic .section flex layout for demo sections.
-         Flex + absolutely-positioned children can collapse width/height. */
-      .section.demo-section {
-        display: block;
-      }
-
-      /* On mobile, use flex column to let content flow naturally */
-      @media (max-width: 768px) {
-        .section.demo-section {
-          display: flex;
-          flex-direction: column;
-          height: auto;
-          min-height: 100vh;
-        }
-      }
-
-      /* Zoom POV uses a sticky viewport-height stage */
-      .zoom-sticky-container {
-        width: 100%;
-        height: 100vh;
-        overflow: hidden;
-      }
-
-      /* Sticky does not behave correctly inside overflow:hidden ancestors.
-         Let the section overflow be visible, and clip inside the sticky stage instead. */
-      .zoom-pov-section {
-        overflow: visible;
-      }
-
-      .demo-boids {
-        position: absolute;
-        top: 0;
-        left: 0;
-        width: 100%;
-        height: 100%;
-      }
-
-      /* On mobile, the canvas should stay fixed in background of the section */
-      @media (max-width: 768px) {
-        .demo-boids {
-          position: absolute;
-          height: 100%;
-        }
-      }
-
-      .demo-overlay {
-        position: absolute;
-        top: 0;
-        left: 0;
-        width: 100%;
-        height: 100%;
-        display: flex;
-        align-items: center;
-        justify-content: flex-start;
-        /* Keep boids visible: fade to transparent rather than covering the whole stage. */
-        background: linear-gradient(
-          90deg,
-          var(--bg-overlay, rgba(0, 0, 0, 0.9)) 0%,
-          var(--bg-overlay-light, rgba(0, 0, 0, 0.4)) 55%,
-          transparent 100%
-        );
-        pointer-events: none;
-        padding: 0 clamp(1.25rem, 6vw, 6rem);
-        box-sizing: border-box;
-      }
-
-      /*
-        Separation (Personal Space): we follow a centered boid and draw its vision.
-        Use a centered radial vignette to fade from the boid to the *opaque* page
-        background, avoiding harsh cutoffs and making “outside vision” feel dim.
-      */
-      .demo-overlay--separation {
-        /* Defaults; can be overridden inline on the element if the demo props change. */
-        --vision-radius: 200px; /* visualRange(40) * zoomLevel(5) */
-        --vision-feather: 96px;
-
-        /* Only darken outward from center, no inner glow */
-        background: radial-gradient(
-          circle at 50% 50%,
-          transparent 0,
-          transparent var(--vision-radius),
-          var(--bg-overlay-light, rgba(0, 0, 0, 0.4)) calc(var(--vision-radius) - 18px),
-          var(--bg-overlay, rgba(0, 0, 0, 0.9)) calc(var(--vision-radius) + 200px),
-          var(--bg-primary) 100%
-        );
-      }
-
-      .demo-overlay .section-content {
-        pointer-events: auto;
-        text-align: left;
-        padding: 2rem 0;
-        margin: 0 auto;
-        width: min(900px, 100%);
-        box-sizing: border-box;
-      }
-
-      .demo-overlay .section-text {
-        max-width: 65ch;
-      }
-
-      .jump-link.is-hidden {
-        opacity: 0;
-        transform: translateY(-8px);
-        pointer-events: none;
-      }
-
-      /* Zoom POV overlay panel */
-      .zoom-overlay {
-        justify-content: flex-start;
-        align-items: flex-start;
-        padding: 0;
-        background: linear-gradient(
-          180deg,
-          var(--bg-overlay, rgba(0, 0, 0, 0.8)) 0%,
-          transparent 28%,
-          transparent 72%,
-          var(--bg-overlay, rgba(0, 0, 0, 0.8)) 100%
-        );
-      }
-
-      /* NYT-style scroll blurbs for zoom section */
-      .zoom-blurb {
-        position: absolute;
-        left: clamp(1rem, 4vw, 4rem);
-        max-width: min(320px, calc(50% - 2rem));
-        padding: 1rem 1.25rem;
-        background: var(--bg-overlay);
-        border-left: 3px solid var(--accent);
-        font-size: 1rem;
-        line-height: 1.6;
-        opacity: 0;
-        transform: translateY(12px);
-        transition:
-          opacity 300ms ease,
-          transform 300ms ease;
-        pointer-events: none;
-        z-index: 10;
-      }
-
-      .zoom-blurb.visible {
-        opacity: 1;
-        transform: translateY(0);
-      }
-
-      .zoom-blurb p {
-        margin: 0;
-      }
-
-      .zoom-blurb strong {
-        color: var(--accent);
-      }
-
-      /* Position each blurb at different vertical spots */
-      .zoom-blurb-1 {
-        top: 15%;
-      }
-      .zoom-blurb-2 {
-        top: 35%;
-      }
-      .zoom-blurb-3 {
-        top: 55%;
-      }
-      .zoom-blurb-4 {
-        top: 75%;
-      }
-
-      @media (max-width: 768px) {
-        .zoom-blurb {
-          left: 1rem;
-          right: auto;
-          max-width: calc(45% - 1rem);
-          font-size: 0.9rem;
-          padding: 0.75rem 1rem;
-        }
-      }
-
-      /* Rules list */
-      .rules-grid {
-        display: grid;
-        grid-template-columns: repeat(3, 1fr);
-        gap: 2rem;
-        margin: 3rem 0;
-      }
-
-      @media (max-width: 768px) {
-        .rules-grid {
-          grid-template-columns: 1fr;
-        }
-      }
-
-      .rule-card {
-        background: rgba(var(--gray-light), 0.18);
-        border: 1px solid rgba(var(--gray), 0.22);
-        padding: 2rem;
-        transition: all 0.3s ease;
-      }
-
-      .rule-card:hover {
-        background: rgba(var(--gray-light), 0.28);
-        border-color: var(--accent, #ff3c00);
-      }
-
-      /* Mobile/narrow: content flows naturally */
-      @media (max-width: 768px) {
-        .demo-overlay {
-          position: relative;
-          height: auto;
-          /* Use standard mobile padding */
-          padding: 6rem var(--spacing-mobile);
-          background: linear-gradient(
-            180deg,
-            var(--bg-overlay, rgba(0, 0, 0, 0.9)) 0%,
-            var(--bg-overlay-light, rgba(0, 0, 0, 0.4)) 40%,
-            transparent 100%
-          );
-          pointer-events: none;
-        }
-
-        /* Update gradient for separation section on mobile */
-        .demo-overlay--separation {
-          background: radial-gradient(
-            circle at 50% 30%,
-            transparent 0,
-            transparent var(--vision-radius),
-            var(--bg-overlay-light, rgba(0, 0, 0, 0.4)) calc(var(--vision-radius) - 18px),
-            var(--bg-overlay, rgba(0, 0, 0, 0.9)) calc(var(--vision-radius) + 200px),
-            var(--bg-primary) 100%
-          );
-        }
-
-        .demo-overlay .section-content {
-          width: 100%;
-          padding: 0;
-          pointer-events: auto;
-        }
-      }
-
-      .rule-number {
-        font-size: 3rem;
-        font-weight: 900;
-        color: var(--accent, #ff3c00);
-        line-height: 1;
-        margin-bottom: 1rem;
-      }
-
-      .rule-title {
-        font-size: 1.25rem;
-        font-weight: 700;
-        margin-bottom: 0.75rem;
-      }
-
-      .rule-desc {
-        font-size: 0.95rem;
-        opacity: 0.7;
-        line-height: 1.6;
-      }
-
-      /* Fade out boids at bottom of rules section before demo begins */
-      .section[data-section="rules"]::after {
-        content: "";
-        position: absolute;
-        bottom: 0;
-        left: 0;
-        right: 0;
-        height: 120px;
-        background: linear-gradient(to bottom, transparent, var(--bg-primary));
-        pointer-events: none;
-        z-index: 10;
-      }
-
-      /* Full experience section */
-      .full-experience {
-        min-height: 100vh;
-        padding: 0;
-        position: relative;
-        /* Solid background hides the fixed background boids layer */
-        background: var(--bg-primary);
-      }
-
-      /* Smooth fade-in edge at top so it doesn't pop in */
-      .full-experience::before {
-        content: "";
-        position: absolute;
-        top: -120px;
-        left: 0;
-        right: 0;
-        height: 120px;
-        background: linear-gradient(to bottom, transparent, var(--bg-primary));
-        pointer-events: none;
-        z-index: 1;
-      }
-
-      .full-boids-container {
-        position: relative;
-        width: 100%;
-        height: 100vh;
-        /* Avoid a distracting “peek” of the default canvas state while this section
-           is only barely visible at the bottom of the viewport. */
-        opacity: 0;
-        transform: translateY(12px);
-        transition:
-          opacity 240ms ease,
-          transform 240ms ease;
-        pointer-events: none;
-      }
-
-      .full-experience.is-active .full-boids-container {
-        opacity: 1;
-        transform: translateY(0);
-        pointer-events: auto;
-      }
-
-      .experience-header {
-        position: absolute;
-        top: 2rem;
-        left: 2rem;
-        z-index: 10;
-        background: var(--bg-primary, rgba(0, 0, 0, 0.8));
-        padding: 1.5rem 2rem;
-        border: 1px solid rgba(var(--gray), 0.25);
-      }
-
-      .experience-header h2 {
-        margin: 0 0 0.5rem 0;
-        font-size: 1.5rem;
-        font-weight: 700;
-      }
-
-      .experience-header p {
-        margin: 0;
-        font-size: 0.9rem;
-        opacity: 0.7;
-      }
-
-      /* Playground header */
-      .playground-header {
-        position: absolute;
-        top: 2rem;
-        left: 2rem;
-        z-index: 10;
-        max-width: 400px;
-      }
-
-      .playground-header .section-number {
-        display: block;
-        margin-bottom: 0.5rem;
-      }
-
-      .playground-header .section-title {
-        font-size: 2rem;
-        margin-bottom: 1rem;
-      }
-
-      .playground-hint {
-        display: flex;
-        align-items: center;
-        gap: 1rem;
-        background: var(--bg-overlay, rgba(255, 255, 255, 0.95));
-        padding: 0.75rem 1rem;
-        border-left: 3px solid var(--accent, #ff3c00);
-        font-size: 0.9rem;
-        animation: fadeInUp 0.4s ease 0.8s both;
-      }
-
-      @keyframes fadeInUp {
-        from {
-          opacity: 0;
-          transform: translateY(8px);
-        }
-        to {
-          opacity: 1;
-          transform: translateY(0);
-        }
-      }
-
-      .playground-hint.hidden {
-        display: none;
-      }
-
-      .hint-close {
-        background: none;
-        border: none;
-        cursor: pointer;
-        padding: 0.25rem;
-        line-height: 1;
-        opacity: 0.7;
-        transition:
-          opacity 0.2s,
-          color 0.2s;
-        color: var(--accent, #ff3c00);
-        display: flex;
-        align-items: center;
-        justify-content: center;
-      }
-
-      .hint-close svg {
-        width: 1.25rem;
-        height: 1.25rem;
-      }
-
-      .hint-close:hover {
-        opacity: 1;
-      }
-
-      /* Zoom section specific styling - transparent to show bg boids */
-      .zoom-section {
-        background: transparent;
-        min-height: 70vh;
-        align-items: flex-end;
-        /* Use standard padding */
-        padding: 6rem var(--spacing-desktop) 2.5rem;
-        position: relative;
-      }
-
-      @media (max-width: 768px) {
-        .zoom-section {
-          padding: 6rem var(--spacing-mobile) 2.5rem;
-          min-height: 50vh; /* Reduced height on mobile */
-        }
-      }
-
-      /* Smooth fade from opaque background to transparent */
-      .zoom-section::before {
-        content: "";
-        position: absolute;
-        top: 0;
-        left: 0;
-        right: 0;
-        height: 120px;
-        background: linear-gradient(to bottom, var(--bg-primary), transparent);
-        pointer-events: none;
-        z-index: 5;
-      }
-
-      .zoom-section .section-content {
-        position: relative;
-        z-index: 10;
-        /* Remove inner padding to match width of other sections */
-        padding: 0;
-      }
-
-      /* Quote block */
-      .quote-block {
-        border-left: 4px solid var(--accent, #ff3c00);
-        padding-left: 2rem;
-        margin: 2rem 0;
-        font-style: italic;
-        font-size: 1.5rem;
-        line-height: 1.6;
-        opacity: 0.9;
-      }
-
-      .quote-author {
-        font-size: 0.9rem;
-        font-style: normal;
-        opacity: 0.6;
-        margin-top: 1rem;
-      }
-    </style>
+    <meta name="theme-color" content="#ffffff" media="(prefers-color-scheme: light)" />
+    <meta name="theme-color" content="#050505" media="(prefers-color-scheme: dark)" />
   </head>
-  <body>
-    <div class="header-wrapper">
+
+  <body class="boids-page">
+    <a class="skip-link" href="#main-content">Skip to the explainer</a>
+
+    <div class="site-header">
       <Header />
     </div>
 
-    <a href="#full-experience" class="jump-link">Skip to Playground→</a>
-
-    <!-- Fixed background boids -->
-    <div class="boids-background">
-      <BoidsCanvas
-        id="bg-boids"
-        nBoids={400}
-        boidSize={10}
-        trailLength={30}
-        drawTrail={true}
-        colorMode="velocity"
-        showVision={false}
-        showStats={false}
-        maxSpeed={0.8}
-        enableScrollControl={true}
-      />
-    </div>
-
-    <div class="content-wrapper">
-      <!-- Hero -->
-      <section class="hero" id="hero">
-        <h1 class="hero-title">Boids</h1>
-        <p class="hero-subtitle">Emergent Flocking Behavior</p>
-        <a href="#intro" class="scroll-indicator">
-          <div class="scroll-indicator-inner">
-            <span>Scroll to explore</span>
-            <div class="scroll-arrow"></div>
-          </div>
-        </a>
-      </section>
-
-      <!-- Introduction -->
-      <section class="section" data-section="intro" id="intro">
-        <div class="section-content">
-          <span class="section-number">1 — Introduction</span>
-          <h2 class="section-title">What Are Boids?</h2>
-          <div class="section-text">
-            <p>
-              In 1986, computer scientist <strong>Craig Reynolds</strong> developed a groundbreaking artificial life simulation
-              that would change how we understand emergent behavior in complex systems.
-            </p>
-            <p>
-              The word "boid" is simply a corruption of "bird" — these are simulated bird-like agents that follow
-              incredibly simple rules, yet produce stunningly realistic flocking behavior without any centralized
-              control.
-            </p>
-          </div>
-          <blockquote class="quote-block">
-            <!-- "The aggregate motion of the simulated flock is the result of the
-            dense interaction of the relatively simple behaviors of the
-            individual simulated birds." -->
-            ... thousands of fishes moved as a huge beast, piercing the water. They appeared united, inexorably bound to a
-            common fate. How comes this unity?
-            <div class="quote-author">— Anonymous, 17th century (from Shaw)</div>
-          </blockquote>
-        </div>
-      </section>
-
-      <!-- The Three Rules -->
-      <section class="section" data-section="rules">
-        <div class="section-content">
-          <span class="section-number">2 — The Algorithm</span>
-          <h2 class="section-title">Three Simple Rules</h2>
-          <div class="section-text">
-            <p>
-              The magic of Boids lies in their simplicity. Each agent follows only three behavioral rules, applied
-              locally — there is no global coordination, no leader, no predetermined patterns.
-            </p>
-          </div>
-
-          <div class="rules-grid">
-            <div class="rule-card">
-              <div class="rule-number">1</div>
-              <h3 class="rule-title">Separation</h3>
-              <p class="rule-desc">
-                Steer to avoid crowding local flockmates. Each boid maintains personal space, preventing collisions.
-              </p>
-            </div>
-
-            <div class="rule-card">
-              <div class="rule-number">2</div>
-              <h3 class="rule-title">Alignment</h3>
-              <p class="rule-desc">
-                Steer towards the average heading of local flockmates. Boids tend to fly in the same direction as their
-                neighbors.
-              </p>
-            </div>
-
-            <div class="rule-card">
-              <div class="rule-number">3</div>
-              <h3 class="rule-title">Cohesion</h3>
-              <p class="rule-desc">
-                Steer to move toward the average position of local flockmates. This keeps the flock together as a group.
-              </p>
-            </div>
-          </div>
-        </div>
-      </section>
-
-      <!-- Separation Demo -->
-      <section class="section demo-section" data-section="separation" data-behavior="separation">
-        <div class="demo-boids">
+    <main id="main-content" class="boids-story">
+      <section class="boids-hero" id="top" aria-labelledby="hero-title">
+        <div class="hero-canvas" aria-hidden="true">
           <BoidsCanvas
-            id="demo-separation"
-            nBoids={350}
-            boidSize={12}
-            visualRange={40}
-            minDistance={40}
-            separationFactor={0.035}
-            alignmentFactor={0.0}
-            cohesionFactor={0.0}
-            colorMode="uniform"
-            uniformHue={0}
-            drawTrail={false}
-            maxSpeed={1.5}
-            minSpeed={1.5}
-            enableFpsLimit={true}
-            followBoid={true}
-            zoomLevel={5.0}
-            cameraSmoothing={1.0}
-            showVision={true}
-            showVisionCone={false}
-            maxTurnRate={0.06}
-          />
-        </div>
-        <div class="demo-overlay demo-overlay--separation" style="--vision-radius: 202px; --vision-feather: 192px;">
-          <div class="section-content">
-            <span class="section-number">3 — Don't Crash!</span>
-            <h2 class="section-title">Separation</h2>
-            <div class="section-text">
-              <p>
-                The separation rule is the most basic of the three. It simply steers each boid to avoid collisions with
-                nearby flockmates.
-                With just separation enabled, a boid's only job is to avoid running into its neighbors.
-              </p>
-            </div>
-            <Prism class="code-block" lang="ts" code={CODE_SEPARATE} />
-          </div>
-        </div>
-      </section>
-
-      <!-- Alignment Demo -->
-      <section class="section demo-section" data-section="alignment" data-behavior="alignment">
-        <div class="demo-boids">
-          <BoidsCanvas
-            id="demo-alignment"
-            nBoids={200}
-            boidSize={10}
-            separationFactor={0.002}
-            alignmentFactor={0.02}
-            cohesionFactor={0.0}
+            id="hero-boids"
+            nBoids={2500}
+            nBoidsMobile={800}
+            boidSize={9}
+            visualRange={42}
+            minDistance={13}
+            drawTrail={true}
             colorMode="velocity"
-            drawTrail={true}
-            trailLength={50}
-            maxSpeed={1.5}
             enableFpsLimit={true}
-            cursorMagnetism={0.2}
-            cursorMagnetismRange={200}
+            showVision={false}
           />
         </div>
-        <div class="demo-overlay">
-          <div class="section-content">
-            <span class="section-number">4 — Follow the Flock</span>
-            <h2 class="section-title">Alignment</h2>
-            <div class="section-text">
+        <div class="hero-wash" aria-hidden="true"></div>
+
+        <div class="story-shell hero-grid">
+          <div class="hero-meta mono-label">
+            <span>Interactive study / 01</span>
+            <span class="live-label"><i></i> Simulation running</span>
+          </div>
+
+          <div class="hero-copy">
+            <p class="eyebrow">Emergent motion, explained from the inside</p>
+            <h1 id="hero-title">
+              <span class="hero-word">Boids</span>
+              <span class="hero-claim">No leader. No map. <em>Together? A flock.</em></span>
+            </h1>
+            <p class="hero-deck">
+              Each agent can see only a few neighbors. Three tiny steering decisions turn that limited view into motion
+              that feels coordinated, alive, and larger than any one boid.
+            </p>
+            <div class="hero-actions">
+              <a class="text-button text-button--primary" href="#premise">Start with one boid <span>↓</span></a>
+              <a class="text-button" href="#playground">Tune the flock <span>↘</span></a>
+            </div>
+          </div>
+
+          <ol class="hero-rule-index" aria-label="The three flocking rules">
+            <li><a href="#separation"><span>01</span><strong>Separation</strong><small>Make room</small></a></li>
+            <li><a href="#alignment"><span>02</span><strong>Alignment</strong><small>Match motion</small></a></li>
+            <li><a href="#cohesion"><span>03</span><strong>Cohesion</strong><small>Stay near</small></a></li>
+          </ol>
+        </div>
+      </section>
+
+      <section class="premise-section" id="premise" aria-labelledby="premise-title">
+        <div class="story-shell">
+          <div class="section-rail mono-label">
+            <span>01</span>
+            <span>The premise</span>
+            <span>Local input → global pattern</span>
+          </div>
+
+          <div class="premise-grid">
+            <h2 id="premise-title">A flock is not commanded.<br />It is negotiated.</h2>
+            <div class="premise-copy">
+              <p class="lede">
+                In 1986, Craig Reynolds showed that convincing group motion does not require choreography. Give every
+                bird-like agent the same small loop and let the pattern emerge.
+              </p>
               <p>
-                Alignment is the second rule, and it's the most interesting. Alignment steers each boid to match the
-                average heading of its neighbors. With just alignment enabled, the boids will start to move in the same
-                direction. They also do a much better job of avoiding collisions.
+                A boid has no map of the flock, no destination shared with everyone, and no idea what the overall shape
+                should be. It only reacts to what is nearby, one frame at a time.
               </p>
             </div>
+          </div>
+
+          <ol class="decision-loop" aria-label="The decision loop each boid repeats">
+            <li>
+              <span class="loop-number">01</span>
+              <h3>Notice</h3>
+              <p>Find the neighbors inside a limited radius and field of view.</p>
+            </li>
+            <li>
+              <span class="loop-number">02</span>
+              <h3>Propose</h3>
+              <p>Turn crowding, headings, and positions into three steering vectors.</p>
+            </li>
+            <li>
+              <span class="loop-number">03</span>
+              <h3>Move</h3>
+              <p>Add the vectors, limit the turn, move forward, and repeat.</p>
+            </li>
+          </ol>
+        </div>
+      </section>
+
+      <section class="rule-chapter rule-chapter--separation" id="separation" aria-labelledby="separation-title">
+        <div class="story-shell chapter-grid">
+          <div class="chapter-copy">
+            <div class="chapter-kicker mono-label">
+              <span>02 / Rule 01</span>
+              <span>Keep space</span>
+            </div>
+            <h2 id="separation-title">Separation</h2>
+            <p class="chapter-thesis">Too close? Turn away.</p>
+            <p class="chapter-body">
+              When another boid enters the red safety radius, the tracked boid proposes a turn in the opposite
+              direction. Several nearby boids become one combined push, so the response is strongest where the crowd is
+              densest.
+            </p>
+            <div class="rule-logic">
+              <span>If distance &lt; minimum</span>
+              <strong>add an away vector</strong>
+            </div>
+          </div>
+
+          <figure class="rule-visual">
+            <div class="visual-header mono-label">
+              <span class="live-label"><i></i> Live local view</span>
+              <span>Tracked boid / orange</span>
+            </div>
+            <div class="visual-window">
+              <div class="rule-canvas" aria-hidden="true">
+                <BoidsCanvas
+                  id="rule-separation"
+                  nBoids={160}
+                  nBoidsMobile={90}
+                  boidSize={11}
+                  visualRange={48}
+                  minDistance={26}
+                  separationFactor={0.03}
+                  alignmentFactor={0}
+                  cohesionFactor={0}
+                  colorMode="uniform"
+                  uniformHue={0}
+                  drawTrail={false}
+                  maxSpeed={0.7}
+                  minSpeed={0.4}
+                  maxTurnRate={0.06}
+                  fieldOfView={360}
+                  enableFpsLimit={true}
+                  followBoid={true}
+                  zoomLevel={4.5}
+                  zoomSmoothing={1}
+                  cameraSmoothing={0.5}
+                  showVision={true}
+                  showVisionCone={true}
+                  explanationMode="separation"
+                />
+              </div>
+            </div>
+            <figcaption class="visual-legend">
+              <span><i class="legend-ring legend-ring--red"></i>Safety radius</span>
+              <span><i class="legend-arrow legend-arrow--red"></i>Combined push</span>
+              <span><i class="legend-boid"></i>Boid + heading</span>
+            </figcaption>
+          </figure>
+
+          <details class="code-panel" open>
+            <summary>
+              <span class="code-label">Function</span>
+              <code>separate(boid, neighbors)</code>
+              <span class="code-toggle">Code</span>
+            </summary>
+            <Prism class="code-block" lang="ts" code={CODE_SEPARATE} />
+          </details>
+        </div>
+      </section>
+
+      <section class="rule-chapter rule-chapter--alignment" id="alignment" aria-labelledby="alignment-title">
+        <div class="story-shell chapter-grid">
+          <div class="chapter-copy">
+            <div class="chapter-kicker mono-label">
+              <span>03 / Rule 02</span>
+              <span>Share direction</span>
+            </div>
+            <h2 id="alignment-title">Alignment</h2>
+            <p class="chapter-thesis">Where are the neighbors heading?</p>
+            <p class="chapter-body">
+              The small green arrows are nearby headings. Their average becomes the larger green proposal on the tracked
+              boid. It does not copy any single neighbor; it continuously compromises with the group it can currently
+              see.
+            </p>
+            <div class="rule-logic">
+              <span>Mean of visible velocities</span>
+              <strong>steer toward that heading</strong>
+            </div>
+          </div>
+
+          <figure class="rule-visual">
+            <div class="visual-header mono-label">
+              <span class="live-label"><i></i> Live local view</span>
+              <span>Headings update every frame</span>
+            </div>
+            <div class="visual-window">
+              <div class="rule-canvas" aria-hidden="true">
+                <BoidsCanvas
+                  id="rule-alignment"
+                  nBoids={320}
+                  nBoidsMobile={100}
+                  boidSize={10}
+                  visualRange={76}
+                  minDistance={13}
+                  separationFactor={0.002}
+                  alignmentFactor={0.09}
+                  cohesionFactor={0}
+                  colorMode="velocity"
+                  drawTrail={true}
+                  trailLength={20}
+                  maxSpeed={1.45}
+                  minSpeed={1}
+                  maxTurnRate={0.045}
+                  fieldOfView={360}
+                  wallMargin={35}
+                  wallTurnFactor={0.45}
+                  enableFpsLimit={true}
+                  followBoid={true}
+                  zoomLevel={3.2}
+                  zoomSmoothing={1}
+                  cameraSmoothing={0.5}
+                  showVision={true}
+                  showVisionCone={true}
+                  explanationMode="alignment"
+                />
+              </div>
+            </div>
+            <figcaption class="visual-legend">
+              <span><i class="legend-arrow legend-arrow--green legend-arrow--small"></i>Neighbor headings</span>
+              <span><i class="legend-arrow legend-arrow--green"></i>Average heading</span>
+              <span><i class="legend-ring legend-ring--blue"></i>Visible radius</span>
+            </figcaption>
+          </figure>
+
+          <details class="code-panel" open>
+            <summary>
+              <span class="code-label">Function</span>
+              <code>align(boid, neighbors)</code>
+              <span class="code-toggle">Code</span>
+            </summary>
             <Prism class="code-block" lang="ts" code={CODE_ALIGN} />
-          </div>
+          </details>
         </div>
       </section>
 
-      <!-- Cohesion Demo -->
-      <section class="section demo-section" data-section="cohesion" data-behavior="cohesion">
-        <div class="demo-boids">
-          <BoidsCanvas
-            id="demo-cohesion"
-            nBoids={380}
-            boidSize={8}
-            separationFactor={0.002}
-            alignmentFactor={0.00}
-            cohesionFactor={0.003}
-            colorMode="flock"
-            colorBlendSpeed={0.1}
-            drawTrail={true}
-            trailLength={30}
-            maxSpeed={1.5}
-            cursorMagnetism={0.0}
-            cursorMagnetismRange={100}
-            fieldOfView={360}
-          />
-        </div>
-        <div class="demo-overlay">
-          <div class="section-content">
-            <span class="section-number">5 — Get to The Middle</span>
-            <h2 class="section-title">Cohesion</h2>
-            <div class="section-text">
-              <p>
-                Here the boids actively seek the center of their local group. Watch how they form tight clusters and
-                spirals that split and merge organically. Neighboring boids' colors blend together to represent flock
-                connections.
-              </p>
+      <section class="rule-chapter rule-chapter--cohesion" id="cohesion" aria-labelledby="cohesion-title">
+        <div class="story-shell chapter-grid">
+          <div class="chapter-copy">
+            <div class="chapter-kicker mono-label">
+              <span>04 / Rule 03</span>
+              <span>Stay connected</span>
             </div>
+            <h2 id="cohesion-title">Cohesion</h2>
+            <p class="chapter-thesis">Where is the local middle?</p>
+            <p class="chapter-body">
+              Average the positions of visible neighbors and a temporary center appears. The blue cross marks that
+              point; the dashed arrow is the boid's proposal to move toward it. As neighbors change, the center moves
+              too.
+            </p>
+            <div class="rule-logic">
+              <span>Mean of visible positions</span>
+              <strong>steer toward that center</strong>
+            </div>
+          </div>
+
+          <figure class="rule-visual">
+            <div class="visual-header mono-label">
+              <span class="live-label"><i></i> Live local view</span>
+              <span>Center is local, not global</span>
+            </div>
+            <div class="visual-window">
+              <div class="rule-canvas" aria-hidden="true">
+                <BoidsCanvas
+                  id="rule-cohesion"
+                  nBoids={320}
+                  nBoidsMobile={100}
+                  boidSize={10}
+                  visualRange={76}
+                  minDistance={13}
+                  separationFactor={0.0015}
+                  alignmentFactor={0}
+                  cohesionFactor={0.009}
+                  colorMode="velocity"
+                  drawTrail={true}
+                  trailLength={20}
+                  maxSpeed={1.45}
+                  minSpeed={1}
+                  maxTurnRate={0.055}
+                  fieldOfView={360}
+                  enableFpsLimit={true}
+                  followBoid={true}
+                  zoomLevel={3.2}
+                  zoomSmoothing={1}
+                  cameraSmoothing={0.5}
+                  showVision={true}
+                  showVisionCone={true}
+                  explanationMode="cohesion"
+                />
+              </div>
+            </div>
+            <figcaption class="visual-legend">
+              <span><i class="legend-cross"></i>Local center</span>
+              <span><i class="legend-arrow legend-arrow--blue"></i>Cohesion pull</span>
+              <span><i class="legend-ring legend-ring--blue"></i>Visible radius</span>
+            </figcaption>
+          </figure>
+
+          <details class="code-panel" open>
+            <summary>
+              <span class="code-label">Function</span>
+              <code>cohere(boid, neighbors)</code>
+              <span class="code-toggle">Code</span>
+            </summary>
             <Prism class="code-block" lang="ts" code={CODE_COHERE} />
-          </div>
+          </details>
         </div>
       </section>
 
-      <!-- Zoom intro hint -->
-      <section class="section zoom-section" data-section="zoom" data-behavior="perspective">
-        <div class="section-content">
-          <span class="section-number">6 — Perspective</span>
-          <h2 class="section-title">A Boid's-Eye View</h2>
-          <div class="section-text">
-            <p>Keep scrolling to zoom in on a single boid and watch how it perceives the world.</p>
-          </div>
-        </div>
-      </section>
-
-      <!-- Zoomed perspective section -->
-      <section
-        class="section demo-section zoom-pov-section"
-        data-section="boid-pov"
-        data-behavior="zooming"
-        style="height: 500vh; position: relative;"
-      >
-        <div class="zoom-sticky-container" style="position: sticky; top: 0; height: 100vh;">
-          <div class="demo-boids" style="position: absolute; top: 0; left: 0; width: 100%; height: 100%;">
+      <section class="pov-section" id="boids-eye" aria-labelledby="pov-title">
+        <div class="pov-stage">
+          <div class="pov-canvas" aria-hidden="true">
             <BoidsCanvas
-              id="demo-zoom"
-              nBoids={400}
+              id="boids-eye-canvas"
+              nBoids={720}
+              nBoidsMobile={170}
               boidSize={10}
-              separationFactor={0.004}
-              alignmentFactor={0.004}
-              cohesionFactor={0.0008}
+              visualRange={66}
+              minDistance={20}
+              separationFactor={0.012}
+              alignmentFactor={0.038}
+              cohesionFactor={0.0012}
               colorMode="velocity"
               drawTrail={true}
-              trailLength={40}
-              maxSpeed={1.2}
-              showVision={true}
-              visionBoidIndex={42}
+              trailLength={26}
+              maxSpeed={1.35}
+              minSpeed={0.9}
+              maxTurnRate={0.06}
+              fieldOfView={260}
+              enableFpsLimit={true}
               followBoid={true}
               zoomLevel={1}
-              cameraSmoothing={1.0}
-              zoomSmoothing={0.03}
-              fieldOfView={270}
+              zoomSmoothing={0.16}
+              cameraSmoothing={0.8}
+              showVision={false}
+              showVisionCone={true}
+              explanationMode="combined"
             />
           </div>
-          <div
-            class="demo-overlay zoom-overlay"
-            style="position: absolute; top: 0; left: 0; width: 100%; height: 100%;"
-          >
-            <!-- NYT-style scroll blurbs - positioned left to avoid center boid -->
-            <div class="zoom-blurb zoom-blurb-1" id="zoom-blurb-1">
-              <p>The highlighted cone shows what this boid can see.</p>
-            </div>
-            <div class="zoom-blurb zoom-blurb-2" id="zoom-blurb-2">
-              <p>The red circle is the minimum distance it will keep from other boids.</p>
-            </div>
-            <div class="zoom-blurb zoom-blurb-3" id="zoom-blurb-3">
-              <p>Each boid only knows about other neighboring boids.</p>
-            </div>
-            <div class="zoom-blurb zoom-blurb-4" id="zoom-blurb-4">
-              <p>But together, they create emergent flocking behaviors.</p>
-            </div>
-          </div>
-        </div>
-      </section>
+          <div class="pov-wash" aria-hidden="true"></div>
 
-      <!-- Technical Implementation -->
-      <!-- <section class="section" data-section="implementation">
-        <div class="section-content">
-          <span class="section-number">7 — Implementation</span>
-          <h2 class="section-title">Making It Fast</h2>
-          <div class="section-text">
-            <p>
-              A naive implementation checks every boid against every other boid, resulting in quadratic time complexity.
-              With just 1,000 boids, that's one million distance calculations per time step. As the number of boids
-              grows, this quickly becomes intractable.
-            </p>
-            <p>
-              A <strong>spatial hash grid</strong>. By dividing space into cells, each boid only needs to
-              check neighbors in nearby cells. This reduces complexity dramatically, allowing thousands of boids to
-              flock smoothly at 60fps.
-            </p>
+          <div class="pov-topbar mono-label">
+            <span>05 / A boid's-eye view</span>
+            <span class="pov-state">Flock</span>
+            <span>Scroll to inspect ↓</span>
           </div>
-          <Prism class="code-block" lang="ts" code={CODE_SPATIAL_HASH} />
-        </div>
-      </section> -->
 
-      <!-- Putting It Together -->
-      <section class="section demo-section" data-section="together" data-behavior="flocking">
-        <div class="demo-boids">
-          <BoidsCanvas
-            id="demo-together"
-            nBoids={300}
-            boidSize={10}
-            separationFactor={0.0035}
-            alignmentFactor={0.003}
-            cohesionFactor={0.0005}
-            colorMode="velocity"
-            drawTrail={true}
-            trailLength={30}
-            maxSpeed={1.5}
-            enableFpsLimit={true}
-            cursorMagnetism={0.1}
-            cursorMagnetismRange={100}
-          />
-        </div>
-        <div class="demo-overlay">
-          <div class="section-content">
-            <span class="section-number">7 — Synthesis</span>
-            <h2 class="section-title">Putting It All Together</h2>
-            <div class="section-text">
+          <div class="pov-copy-stack">
+            <article class="pov-step is-active" data-pov-step="0">
+              <span class="step-count mono-label">01 / 04</span>
+              <h2 id="pov-title">The global pattern has a local cause.</h2>
               <p>
-                Combining Separation, Alignment, and Cohesion produces a complete system that mimics the complex, fluid
-                motion of real flocking behavior in nature.
+                From a distance, the flock reads as one organism. Move closer and that unity dissolves into agents with
+                incomplete information.
               </p>
+            </article>
+            <article class="pov-step" data-pov-step="1" aria-hidden="true">
+              <span class="step-count mono-label">02 / 04</span>
+              <h2>A moving aperture is the whole world.</h2>
+              <p>
+                The blue sector is everything this boid can use right now. Anything behind it or beyond the radius gets
+                no vote this frame.
+              </p>
+            </article>
+            <article class="pov-step" data-pov-step="2" aria-hidden="true">
+              <span class="step-count mono-label">03 / 04</span>
+              <h2>Neighbors become measurements.</h2>
+              <p>
+                Each blue line identifies one usable neighbor. Its small green arrow contributes a heading; together,
+                those headings become the larger alignment proposal. The evidence changes every frame.
+              </p>
+            </article>
+            <article class="pov-step" data-pov-step="3" aria-hidden="true">
+              <span class="step-count mono-label">04 / 04</span>
+              <h2>Behavior is a weighted argument.</h2>
+              <p>
+                Red, green, and blue proposals are added, then speed and turn limits decide what is physically possible.
+                Repeat that private calculation for every boid and the public flock appears.
+              </p>
+              <div class="step-legend" aria-label="Steering vector colors">
+                <span><i class="signal signal--red"></i>Separation</span>
+                <span><i class="signal signal--green"></i>Alignment</span>
+                <span><i class="signal signal--blue"></i>Cohesion</span>
+              </div>
+            </article>
+          </div>
+
+          <ol class="pov-progress" aria-label="Boid's-eye sequence progress">
+            <li class="is-active" data-pov-marker="0"><span>01</span><b>Flock</b></li>
+            <li data-pov-marker="1"><span>02</span><b>Field</b></li>
+            <li data-pov-marker="2"><span>03</span><b>Signals</b></li>
+            <li data-pov-marker="3"><span>04</span><b>Steer</b></li>
+          </ol>
+          <div class="pov-progress-line" aria-hidden="true"><i></i></div>
+        </div>
+      </section>
+
+      <section class="mixer-section" id="playground" aria-labelledby="mixer-title">
+        <div class="story-shell">
+          <div class="section-rail mono-label">
+            <span>06</span>
+            <span>Synthesis</span>
+            <span>Live rule mixer</span>
+          </div>
+
+          <div class="mixer-heading">
+            <h2 id="mixer-title">Tune your own flock.</h2>
+            <div>
+              <p class="lede">
+                There are lots of ways to tune a flock. Change the weight of each proposal step and the same simple
+                agents become a loose cloud, a directional school, or a nervous cluster.
+              </p>
+              <p>Move through the field to disturb it. The flock will follow you.</p>
             </div>
-            <!-- <Prism class="code-block" lang="ts" code={CODE_UPDATE} /> -->
+          </div>
+
+          <div
+            class="steering-equation"
+            aria-label="The next velocity is the current velocity plus weighted separation, alignment, and cohesion vectors"
+          >
+            <span>velocity<sub>next</sub></span>
+            <i>=</i>
+            <span>velocity</span>
+            <i>+</i>
+            <span class="equation-red">s · separate</span>
+            <i>+</i>
+            <span class="equation-green">a · align</span>
+            <i>+</i>
+            <span class="equation-blue">c · cohere</span>
+          </div>
+
+          <div class="mixer-lab">
+            <div class="mixer-controls">
+              <div class="control-heading mono-label">
+                <span>Rule weights / 0–100</span>
+                <span>Drag to tune</span>
+              </div>
+
+              <label class="mixer-control mixer-control--red">
+                <span><b>Separation</b><output data-mixer-output="separationFactor">30</output></span>
+                <input
+                  type="range"
+                  min="0"
+                  max="100"
+                  value="30"
+                  step="1"
+                  aria-label="Separation weight"
+                  data-mixer-control
+                  data-param="separationFactor"
+                  data-scale="0.0005"
+                />
+                <small>Push away from crowding</small>
+              </label>
+
+              <label class="mixer-control mixer-control--green">
+                <span><b>Alignment</b><output data-mixer-output="alignmentFactor">24</output></span>
+                <input
+                  type="range"
+                  min="0"
+                  max="100"
+                  value="24"
+                  step="1"
+                  aria-label="Alignment weight"
+                  data-mixer-control
+                  data-param="alignmentFactor"
+                  data-scale="0.0015"
+                />
+                <small>Match nearby headings</small>
+              </label>
+
+              <label class="mixer-control mixer-control--blue">
+                <span><b>Cohesion</b><output data-mixer-output="cohesionFactor">10</output></span>
+                <input
+                  type="range"
+                  min="0"
+                  max="100"
+                  value="10"
+                  step="1"
+                  aria-label="Cohesion weight"
+                  data-mixer-control
+                  data-param="cohesionFactor"
+                  data-scale="0.00012"
+                />
+                <small>Pull toward local centers</small>
+              </label>
+
+              <div class="preset-group" aria-label="Rule-weight presets">
+                <span class="mono-label">Presets</span>
+                <div>
+                  <button class="is-active" type="button" data-mixer-preset="30,24,10">Balanced</button>
+                  <button type="button" data-mixer-preset="16,66,8">Stream</button>
+                  <button type="button" data-mixer-preset="12,14,42">Cluster</button>
+                  <button type="button" data-mixer-preset="84,6,2">Scatter</button>
+                </div>
+              </div>
+
+              <div class="lab-actions">
+                <button type="button" data-mixer-pause aria-pressed="false">Pause motion</button>
+                <button type="button" data-mixer-reset>Reseed flock</button>
+              </div>
+            </div>
+
+            <div class="mixer-visual">
+              <div class="mixer-canvas-meta mono-label">
+                <span class="live-label"><i></i> Live synthesis</span>
+                <span>Pointer influence / on</span>
+              </div>
+              <div class="mixer-canvas" aria-hidden="true">
+                <BoidsCanvas
+                  id="rule-mixer"
+                  nBoids={900}
+                  nBoidsMobile={190}
+                  boidSize={9}
+                  colorMode="velocity"
+                  drawTrail={true}
+                  trailLength={28}
+                  cursorMagnetism={0.12}
+                  cursorMagnetismRange={140}
+                  enableFpsLimit={true}
+                  showVision={false}
+                />
+              </div>
+            </div>
           </div>
         </div>
       </section>
 
-      <!-- Applications -->
-      <section class="section" data-section="applications">
-        <div class="section-content">
-          <span class="section-number">8 — Applications</span>
-          <h2 class="section-title">Beyond Simulation</h2>
-          <div class="section-text">
-            <p>Boids show up in a number of places you might not expect:</p>
-          </div>
-          <div class="rules-grid">
-            <div class="rule-card">
-              <h3 class="rule-title">Film & VFX</h3>
-              <p class="rule-desc">
-                From the bat swarms in Batman Returns to stampedes in The Lion King, Boids-based systems create
-                realistic crowd movement.
-              </p>
-            </div>
-            <div class="rule-card">
-              <h3 class="rule-title">Robotics</h3>
-              <p class="rule-desc">
-                Drone swarms use similar algorithms for coordinated flight, search-and-rescue operations, and
-                agricultural monitoring.
-              </p>
-            </div>
-            <div class="rule-card">
-              <h3 class="rule-title">Traffic Flow</h3>
-              <p class="rule-desc">
-                Understanding emergent behavior helps design better traffic systems and predict congestion patterns in
-                urban environments.
-              </p>
-            </div>
+      <footer class="story-footer">
+        <div class="story-shell">
+          <p>Three local decisions.<br /><strong>One global illusion.</strong></p>
+          <div>
+            <a href="#top">Restart the story ↑</a>
+            <a href="/">Back to index ↗</a>
           </div>
         </div>
-      </section>
+      </footer>
+    </main>
 
-      <!-- Full Experience -->
-      <section class="full-experience" id="full-experience" data-section="full">
-        <div class="playground-header">
-          <span class="section-number">9 — Playground</span>
-          <h2 class="section-title">Experiment</h2>
-          <div class="playground-hint" id="playground-hint">
-            <span>Click the menu in the corner to tweak boid simulation parameters.</span>
-            <button class="hint-close" aria-label="Close hint"><Icon name="material-symbols:close" /></button>
-          </div>
-        </div>
-        <div class="full-boids-container">
-          <BoidsCanvas
-            id="full-boids"
-            nBoids={700}
-            boidSize={12}
-            trailLength={35}
-            drawTrail={true}
-            colorMode="velocity"
-            showVision={false}
-            visionBoidIndex={0}
-            showStats={false}
-            showControls={true}
-            maxSpeed={1.5}
-            visualRange={60}
-            wallMargin={50}
-            followBoid={false}
-            zoomLevel={1}
-            cameraSmoothing={0.08}
-            zoomSmoothing={0.02}
-            cursorMagnetism={0.05}
-            cursorMagnetismRange={150}
-          />
-        </div>
-      </section>
+    <script>
+      type ExplanationMode = "separation" | "alignment" | "cohesion" | "combined" | undefined;
 
-      <script>
-        import renderMathInElement from "katex/contrib/auto-render";
+      const getInstance = (id: string) => window.boidsInstances?.get(`${id}-container`);
 
-        // Scroll past the header on page load so the hero is centered.
-        // Measures header height dynamically for durability as header changes.
-        const headerWrapper = document.querySelector(".header-wrapper");
-        if (headerWrapper) {
-          const headerHeight = headerWrapper.getBoundingClientRect().height;
-          // Use instant scroll (no smooth animation) so it happens before paint
-          window.scrollTo({ top: headerHeight, behavior: "instant" });
+      function closeMobileCodePanels(): void {
+        if (!window.matchMedia("(max-width: 720px)").matches) return;
+        document
+          .querySelectorAll<HTMLDetailsElement>(".code-panel[open]")
+          .forEach((panel) => panel.removeAttribute("open"));
+      }
+
+      function syncRuleZooms(): void {
+        const demos = [
+          { id: "rule-separation", range: 48, fraction: 0.36 },
+          { id: "rule-alignment", range: 76, fraction: 0.36 },
+          { id: "rule-cohesion", range: 76, fraction: 0.36 },
+        ];
+
+        for (const demo of demos) {
+          const instance = getInstance(demo.id);
+          const stage = document
+            .querySelector<HTMLElement>(`#${demo.id}-container`)
+            ?.closest<HTMLElement>(".visual-window");
+          if (!instance || !stage) continue;
+          const zoom = Math.max(1.55, Math.min(5, (stage.clientWidth * demo.fraction) / demo.range));
+          instance.setParams({ zoomLevel: zoom });
         }
+      }
 
-        const jumpLink = document.querySelector(".jump-link");
-        const backgroundBoids = document.querySelector(".boids-background") as HTMLElement | null;
+      function initPovSequence(): void {
+        const section = document.querySelector<HTMLElement>(".pov-section");
+        const steps = Array.from(document.querySelectorAll<HTMLElement>("[data-pov-step]"));
+        const markers = Array.from(document.querySelectorAll<HTMLElement>("[data-pov-marker]"));
+        const state = document.querySelector<HTMLElement>(".pov-state");
+        if (!section || steps.length === 0) return;
 
-        // Scroll-based updates
-        function handleScroll() {
-          const windowHeight = window.innerHeight;
+        const stateNames = ["Flock", "Field", "Signals", "Steer"];
+        let frameRequested = false;
+        let previousStep = -1;
 
-          // Handle zoom section scroll
-          const zoomSection = document.querySelector('[data-section="boid-pov"]');
-          if (zoomSection) {
-            const rect = zoomSection.getBoundingClientRect();
-            const sectionHeight = rect.height;
-            // Start zooming as soon as the section top reaches bottom of viewport
-            // End zooming when section bottom reaches top of viewport
-            const scrollIntoSection = windowHeight - rect.top;
-            const totalScrollDistance = sectionHeight + windowHeight;
-            const scrollProgress = Math.max(0, Math.min(1, scrollIntoSection / totalScrollDistance));
+        const update = (): void => {
+          frameRequested = false;
+          const rect = section.getBoundingClientRect();
+          const travel = Math.max(1, section.offsetHeight - window.innerHeight);
+          const progress = Math.max(0, Math.min(1, -rect.top / travel));
+          const activeStep = Math.min(3, Math.floor(progress * 4));
+          const isMobile = window.matchMedia("(max-width: 720px)").matches;
+          const minZoom = isMobile ? 0.9 : 1;
+          const maxZoom = isMobile ? 3.9 : 5.4;
+          const zoomLevel = minZoom + (maxZoom - minZoom) * progress;
+          const explanationMode: ExplanationMode =
+            activeStep === 2 ? "alignment" : activeStep >= 3 ? "combined" : undefined;
 
-            // Update zoom boids instance
-            if (window.boidsInstances && window.boidsInstances.has("demo-zoom-container")) {
-              const instance = window.boidsInstances.get("demo-zoom-container");
-              if (instance) {
-                // Use smaller zoom range on mobile for better proportions
-                const isMobile = window.innerWidth <= 768;
-                const minZoom = isMobile ? 0.6 : 1;
-                const maxZoom = isMobile ? 3.5 : 6.5;
-                const targetZoom = minZoom + scrollProgress * (maxZoom - minZoom);
-                instance.setParams({ zoomLevel: targetZoom });
-              }
-            }
+          section.style.setProperty("--pov-progress", String(progress));
+          section.dataset.stage = String(activeStep);
 
-            // Show/hide NYT-style scroll blurbs based on progress
-            const blurb1 = document.getElementById("zoom-blurb-1");
-            const blurb2 = document.getElementById("zoom-blurb-2");
-            const blurb3 = document.getElementById("zoom-blurb-3");
-            const blurb4 = document.getElementById("zoom-blurb-4");
-
-            // Each blurb visible for a portion of the scroll
-            const show = (el: HTMLElement | null, visible: boolean) => {
-              if (el) el.classList.toggle("visible", visible);
-            };
-
-            show(blurb1, scrollProgress > 0.08 && scrollProgress < 0.35);
-            show(blurb2, scrollProgress > 0.25 && scrollProgress < 0.5);
-            show(blurb3, scrollProgress > 0.42 && scrollProgress < 0.7);
-            show(blurb4, scrollProgress > 0.6 && scrollProgress < 0.88);
-          }
-
-          // Hide jump link after scrolling a bit
-          const jumpLink = document.querySelector(".jump-link");
-          if (jumpLink) {
-            const scrollY = window.scrollY;
-            if (scrollY > windowHeight * 0.25) {
-              jumpLink.classList.add("is-hidden");
-            } else {
-              jumpLink.classList.remove("is-hidden");
-            }
-          }
-        }
-
-        window.addEventListener("scroll", handleScroll, { passive: true });
-
-        // Initial call
-        handleScroll();
-
-        // Set mobile-appropriate zoom levels for fixed-zoom demos
-        function setMobileZoomLevels() {
-          const isMobile = window.innerWidth <= 768;
-
-          // Separation demo (Personal Space) - reduce zoom on mobile
-          if (window.boidsInstances && window.boidsInstances.has("demo-separation-container")) {
-            const separationInstance = window.boidsInstances.get("demo-separation-container");
-            if (separationInstance) {
-              separationInstance.setParams({
-                zoomLevel: isMobile ? 3.5 : 5.0,
-              });
-            }
-          }
-
-          // Playground - start more zoomed out on mobile
-          if (window.boidsInstances && window.boidsInstances.has("full-boids-container")) {
-            const playgroundInstance = window.boidsInstances.get("full-boids-container");
-            if (playgroundInstance) {
-              playgroundInstance.setParams({
-                zoomLevel: isMobile ? 0.7 : 1.0,
-              });
-            }
-          }
-        }
-
-        // Wait briefly for boids instances to initialize, then apply mobile zoom
-        setTimeout(setMobileZoomLevels, 100);
-
-        // Dismiss playground hint
-        const hintClose = document.querySelector(".hint-close");
-        const playgroundHint = document.getElementById("playground-hint");
-        if (hintClose && playgroundHint) {
-          hintClose.addEventListener("click", () => {
-            playgroundHint.classList.add("hidden");
+          const instance = getInstance("boids-eye-canvas");
+          instance?.setParams({
+            zoomLevel,
+            showVision: activeStep >= 1,
+            explanationMode,
           });
-        }
 
-        // Hide the farthest-back background boids when any foreground boids canvases are visible.
-        try {
-          const bgId = "bg-boids-container";
-          const foregroundCanvases = Array.from(
-            document.querySelectorAll<HTMLElement>(`.boids-container:not(#${bgId})`),
-          );
-
-          if (backgroundBoids && foregroundCanvases.length > 0) {
-            let visibleCount = 0;
-            const updateBgVisibility = (): void => {
-              backgroundBoids.classList.toggle("is-hidden", visibleCount > 0);
-            };
-
-            const io = new IntersectionObserver(
-              (entries) => {
-                for (const entry of entries) {
-                  const wasVisible = (entry.target as HTMLElement).dataset.bgHidesBg === "1";
-                  // Treat even small “slivers” (e.g. ~100px of a 100vh canvas) as visible,
-                  // otherwise the fixed background layer can show behind/around the canvas.
-                  const isVisible =
-                    entry.isIntersecting &&
-                    (entry.intersectionRatio >= 0.02 ||
-                      (entry.intersectionRect.height >= 16 && entry.intersectionRect.width >= 16));
-
-                  if (!wasVisible && isVisible) {
-                    (entry.target as HTMLElement).dataset.bgHidesBg = "1";
-                    visibleCount++;
-                  } else if (wasVisible && !isVisible) {
-                    delete (entry.target as HTMLElement).dataset.bgHidesBg;
-                    visibleCount = Math.max(0, visibleCount - 1);
-                  }
-                }
-                updateBgVisibility();
-              },
-              {
-                // Include low thresholds so we get callbacks as a canvas grows from
-                // a tiny intersection into a visible slice.
-                threshold: [0, 0.01, 0.02, 0.05, 0.1, 0.2, 0.3],
-                rootMargin: "0px",
-              },
-            );
-
-            foregroundCanvases.forEach((el) => io.observe(el));
-          }
-        } catch (err) {
-          console.warn("Background boids visibility observer failed", err);
-        }
-
-        // KaTeX: render any $...$ / $$...$$ math in this page
-        try {
-          const root = document.querySelector(".content-wrapper") ?? document.body;
-          renderMathInElement(root as HTMLElement, {
-            delimiters: [
-              { left: "$$", right: "$$", display: true },
-              { left: "$", right: "$", display: false },
-            ],
-            throwOnError: false,
-            ignoredClasses: ["code-block"],
+          if (activeStep === previousStep) return;
+          previousStep = activeStep;
+          state && (state.textContent = stateNames[activeStep]);
+          steps.forEach((step, index) => {
+            const active = index === activeStep;
+            step.classList.toggle("is-active", active);
+            step.setAttribute("aria-hidden", String(!active));
           });
-        } catch (err) {
-          // Non-fatal: page still works without math rendering.
-          console.warn("KaTeX auto-render failed", err);
-        }
+          markers.forEach((marker, index) => marker.classList.toggle("is-active", index === activeStep));
+        };
 
-        // Full Experience zoom-out animation
-        // When the section first becomes visible, smoothly zoom out and stop following
-        try {
-          const fullExperienceSection = document.getElementById("full-experience");
-          let hasTriggeredZoomOut = false;
-          let hasPrimedFullExperience = false;
-          let zoomOutAnimationId: number | null = null;
+        const requestUpdate = (): void => {
+          if (frameRequested) return;
+          frameRequested = true;
+          requestAnimationFrame(update);
+        };
 
-          if (fullExperienceSection) {
-            const fullExperienceObserver = new IntersectionObserver(
-              (entries) => {
-                for (const entry of entries) {
-                  if (!entry.isIntersecting) continue;
+        window.addEventListener("scroll", requestUpdate, { passive: true });
+        window.addEventListener("resize", requestUpdate, { passive: true });
+        requestUpdate();
+      }
 
-                  // Prime the playground instance as soon as it starts intersecting,
-                  // but keep the canvas hidden until the section is meaningfully in view.
-                  const instance = window.boidsInstances?.get("full-boids-container");
-                  if (instance && !hasPrimedFullExperience) {
-                    hasPrimedFullExperience = true;
+      function initMixer(): void {
+        const sliders = Array.from(document.querySelectorAll<HTMLInputElement>("[data-mixer-control]"));
+        const presets = Array.from(document.querySelectorAll<HTMLButtonElement>("[data-mixer-preset]"));
+        const pauseButton = document.querySelector<HTMLButtonElement>("[data-mixer-pause]");
+        const resetButton = document.querySelector<HTMLButtonElement>("[data-mixer-reset]");
+        if (sliders.length === 0) return;
 
-                    // Find the boid closest to the center of the canvas
-                    const centerX = instance.width / 2;
-                    const centerY = instance.height / 2;
-                    let closestIndex = 0;
-                    let closestDistance = Infinity;
-
-                    for (let i = 0; i < instance.sim.count; i++) {
-                      const dx = instance.sim.posX[i] - centerX;
-                      const dy = instance.sim.posY[i] - centerY;
-                      const dist = dx * dx + dy * dy; // squared distance is fine for comparison
-                      if (dist < closestDistance) {
-                        closestDistance = dist;
-                        closestIndex = i;
-                      }
-                    }
-
-                    const targetBoid = { x: instance.sim.posX[closestIndex], y: instance.sim.posY[closestIndex] };
-                    const startZoom = 5;
-
-                    // Instantly position camera on the center boid (no smoothing)
-                    instance.cameraX = targetBoid.x - instance.width / (2 * startZoom);
-                    instance.cameraY = targetBoid.y - instance.height / (2 * startZoom);
-                    instance.currentZoom = startZoom;
-                    instance.targetZoom = startZoom;
-
-                    // Enable follow mode and show vision at the primed zoom.
-                    // (Canvas is still hidden via CSS until we add .is-active.)
-                    instance.setParams({
-                      visionBoidIndex: closestIndex,
-                      followBoid: true,
-                      showVision: true,
-                      zoomLevel: startZoom,
-                      cameraSmoothing: 0,
-                    });
-                  }
-
-                  // Reveal once the section has a meaningful presence in the viewport.
-                  // This prevents the “bottom edge peek” from showing a default state.
-                  const revealNow = entry.intersectionRect.height >= window.innerHeight * 0.25;
-                  if (revealNow) {
-                    fullExperienceSection.classList.add("is-active");
-                  }
-
-                  if (revealNow && !hasTriggeredZoomOut) {
-                    hasTriggeredZoomOut = true;
-
-                    // Start the zoom-out animation (if we have the instance).
-                    if (instance) {
-                      // Find the boid closest to the center of the canvas
-                      const centerX = instance.width / 2;
-                      const centerY = instance.height / 2;
-                      let closestIndex = 0;
-                      let closestDistance = Infinity;
-
-                      for (let i = 0; i < instance.sim.count; i++) {
-                        const dx = instance.sim.posX[i] - centerX;
-                        const dy = instance.sim.posY[i] - centerY;
-                        const dist = dx * dx + dy * dy; // squared distance is fine for comparison
-                        if (dist < closestDistance) {
-                          closestDistance = dist;
-                          closestIndex = i;
-                        }
-                      }
-
-                      // Set up for the zoom-in then zoom-out animation
-                      const targetBoid = { x: instance.sim.posX[closestIndex], y: instance.sim.posY[closestIndex] };
-                      const startZoom = 5;
-                      const endZoom = 1;
-
-                      // Instantly position camera on the center boid (no smoothing)
-                      instance.cameraX = targetBoid.x - instance.width / (2 * startZoom);
-                      instance.cameraY = targetBoid.y - instance.height / (2 * startZoom);
-                      instance.currentZoom = startZoom;
-                      instance.targetZoom = startZoom;
-
-                      // Now enable follow mode and show vision
-                      instance.setParams({
-                        visionBoidIndex: closestIndex,
-                        followBoid: true,
-                        showVision: true,
-                        zoomLevel: startZoom,
-                      });
-
-                      const startTime = performance.now();
-                      const duration = 2000; // 2 seconds for smooth transition
-
-                      // Ease-out cubic function for smooth deceleration
-                      const easeOutCubic = (t: number): number => 1 - Math.pow(1 - t, 3);
-
-                      const animateZoomOut = (currentTime: number): void => {
-                        const elapsed = currentTime - startTime;
-                        const progress = Math.min(elapsed / duration, 1);
-                        const easedProgress = easeOutCubic(progress);
-
-                        // Interpolate zoom level
-                        const currentZoom = startZoom + (endZoom - startZoom) * easedProgress;
-                        instance.setParams({ zoomLevel: currentZoom });
-
-                        if (progress < 1) {
-                          zoomOutAnimationId = requestAnimationFrame(animateZoomOut);
-                        } else {
-                          // Ensure final state is set
-                          instance.setParams({
-                            zoomLevel: 1,
-                            followBoid: false,
-                            showVision: false,
-                            cameraSmoothing: 0.1,
-                          });
-                        }
-                      };
-
-                      zoomOutAnimationId = requestAnimationFrame(animateZoomOut);
-                    }
-                  }
-                }
-              },
-              {
-                // Include low thresholds so we can prime early, and a mid threshold
-                // so we can reveal/start the animation only when it feels intentional.
-                threshold: [0, 0.05, 0.15, 0.25, 0.35],
-                rootMargin: "0px",
-              },
-            );
-
-            fullExperienceObserver.observe(fullExperienceSection);
+        const applyValues = (): void => {
+          const params: Record<string, number> = {};
+          for (const slider of sliders) {
+            const param = slider.dataset.param;
+            const scale = Number(slider.dataset.scale);
+            if (!param || !Number.isFinite(scale)) continue;
+            params[param] = Number(slider.value) * scale;
+            const output = document.querySelector<HTMLOutputElement>(`[data-mixer-output="${param}"]`);
+            if (output) output.value = slider.value.padStart(2, "0");
           }
-        } catch (err) {
-          console.warn("Full experience zoom animation failed", err);
-        }
-      </script>
-    </div>
+          getInstance("rule-mixer")?.setParams(params);
+        };
+
+        sliders.forEach((slider) => {
+          slider.addEventListener("input", () => {
+            presets.forEach((preset) => preset.classList.remove("is-active"));
+            applyValues();
+          });
+        });
+
+        presets.forEach((preset) => {
+          preset.addEventListener("click", () => {
+            const values = preset.dataset.mixerPreset?.split(",") ?? [];
+            sliders.forEach((slider, index) => {
+              if (values[index] !== undefined) slider.value = values[index];
+            });
+            presets.forEach((button) => button.classList.toggle("is-active", button === preset));
+            applyValues();
+          });
+        });
+
+        pauseButton?.addEventListener("click", () => {
+          const instance = getInstance("rule-mixer");
+          if (!instance) return;
+          instance.isPaused = !instance.isPaused;
+          pauseButton.setAttribute("aria-pressed", String(instance.isPaused));
+          pauseButton.textContent = instance.isPaused ? "Resume motion" : "Pause motion";
+        });
+
+        resetButton?.addEventListener("click", () => {
+          const instance = getInstance("rule-mixer");
+          if (!instance) return;
+          instance.sim.init(instance.width, instance.height);
+          instance.renderer.syncBuffers();
+        });
+
+        applyValues();
+      }
+
+      function initStory(): void {
+        closeMobileCodePanels();
+        initPovSequence();
+        initMixer();
+        requestAnimationFrame(syncRuleZooms);
+        window.setTimeout(syncRuleZooms, 160);
+        window.addEventListener("resize", syncRuleZooms, { passive: true });
+      }
+
+      if (document.readyState === "loading") {
+        document.addEventListener("DOMContentLoaded", initStory, { once: true });
+      } else {
+        initStory();
+      }
+    </script>
   </body>
 </html>

@@ -1,17 +1,15 @@
 // Structure-of-Arrays Boids simulation with an allocation-free flat spatial
-// grid. This is a faithful, behaviour-preserving port of the original
-// object-oriented `updateBoids()` from BoidsCanvas.astro:
+// grid.
 //
-//   * the update is in-place (Gauss-Seidel): the grid is built from
-//     frame-start positions, then each boid is mutated in turn, so later
-//     boids read the already-updated state of earlier ones — exactly as the
-//     original `Boid[]` mutation did;
-//   * the neighbour set, FOV test, separation/alignment/cohesion, wall
-//     avoidance, cursor magnetism, speed clamp, turn-rate limit and the four
-//     colour modes (incl. the flock circular-hue mean) are ported verbatim;
-//   * trails are flat ring buffers (one window of `trailLen` per boid),
-//     seeded to the spawn position so unfilled slots draw as zero-length
-//     segments (replacing the old per-segment max-gap guard).
+// Each frame snapshots positions/velocities before building the grid. Steering
+// reads exclusively from that snapshot and writes the next state into the live
+// arrays. Keeping the grid buckets and cohesion/alignment samples on the same
+// frame-start state avoids order-dependent stale centroids when earlier boids
+// have already been integrated this frame.
+//
+// Trails are flat ring buffers (one window of `trailLen` per boid), seeded to
+// the spawn position so unfilled slots draw as zero-length segments (replacing
+// the old per-segment max-gap guard).
 
 import type { BoidsConfig, SimStepContext } from "./types";
 
@@ -39,6 +37,13 @@ export class BoidSim {
   colH = new Float32Array(0);
   colS = new Float32Array(0);
   colL = new Float32Array(0);
+
+  // Frame-start snapshots used for coherent, order-independent steering reads.
+  private prevPosX = new Float32Array(0);
+  private prevPosY = new Float32Array(0);
+  private prevVelX = new Float32Array(0);
+  private prevVelY = new Float32Array(0);
+  private prevColH = new Float32Array(0);
 
   // Trails: boid i occupies trailX/Y[i*trailLen .. (i+1)*trailLen).
   // The ring is always treated as full (seeded), `trailHead` is the next write
@@ -98,6 +103,11 @@ export class BoidSim {
     this.colH = new Float32Array(capacity);
     this.colS = new Float32Array(capacity);
     this.colL = new Float32Array(capacity);
+    this.prevPosX = new Float32Array(capacity);
+    this.prevPosY = new Float32Array(capacity);
+    this.prevVelX = new Float32Array(capacity);
+    this.prevVelY = new Float32Array(capacity);
+    this.prevColH = new Float32Array(capacity);
     this.cellOfBoid = new Int32Array(capacity);
     this.sortedIdx = new Int32Array(capacity);
     this.trailHead = new Int32Array(capacity);
@@ -142,6 +152,17 @@ export class BoidSim {
     const velY = this.velY;
     const colH = this.colH;
 
+    const prevPosX = this.prevPosX;
+    const prevPosY = this.prevPosY;
+    const prevVelX = this.prevVelX;
+    const prevVelY = this.prevVelY;
+    const prevColH = this.prevColH;
+    prevPosX.set(posX);
+    prevPosY.set(posY);
+    prevVelX.set(velX);
+    prevVelY.set(velY);
+    prevColH.set(colH);
+
     const visualRange = p.visualRange;
     const minDistance = p.minDistance;
     const visualRange2 = visualRange * visualRange;
@@ -178,8 +199,8 @@ export class BoidSim {
     const worldMouseX = c.mouseX / c.camZoom + c.camX;
     const worldMouseY = c.mouseY / c.camZoom + c.camY;
 
-    // Build the grid from frame-start positions.
-    this.buildGrid(width, height, Math.max(1, visualRange));
+    // Build the grid from the same frame-start snapshot used by steering.
+    this.buildGrid(width, height, Math.max(1, visualRange), prevPosX, prevPosY);
     const invCell = this.gInvCell;
     const cols = this.gCols;
     const rows = this.gRows;
@@ -195,10 +216,10 @@ export class BoidSim {
     const trailHead = this.trailHead;
 
     for (let i = 0; i < n; i++) {
-      const bx = posX[i];
-      const by = posY[i];
-      const origDx = velX[i];
-      const origDy = velY[i];
+      const bx = prevPosX[i];
+      const by = prevPosY[i];
+      const origDx = prevVelX[i];
+      const origDy = prevVelY[i];
       let vx = origDx;
       let vy = origDy;
       const vMag2 = vx * vx + vy * vy;
@@ -210,7 +231,7 @@ export class BoidSim {
       let cohX = 0;
       let cohY = 0;
       let count = 0;
-      let flockAvgH = colH[i];
+      let flockAvgH = prevColH[i];
       let flockCount = 1;
 
       const cx = clampInt(Math.floor((bx - originX) * invCell), 0, cols - 1);
@@ -228,8 +249,8 @@ export class BoidSim {
           for (let s = cellStart[cidx]; s < end; s++) {
             const j = sortedIdx[s];
             if (j === i) continue;
-            const dx = posX[j] - bx;
-            const dy = posY[j] - by;
+            const dx = prevPosX[j] - bx;
+            const dy = prevPosY[j] - by;
             const dist2 = dx * dx + dy * dy;
             if (dist2 === 0) continue;
             if (dist2 > visualRange2 && dist2 > minDistance2) continue;
@@ -250,13 +271,13 @@ export class BoidSim {
               sepY += -dy * factor;
             }
             if (dist2 <= visualRange2 && inFov) {
-              alignX += velX[j];
-              alignY += velY[j];
-              cohX += posX[j];
-              cohY += posY[j];
+              alignX += prevVelX[j];
+              alignY += prevVelY[j];
+              cohX += prevPosX[j];
+              cohY += prevPosY[j];
               count++;
               if (doFlock) {
-                let otherH = colH[j];
+                let otherH = prevColH[j];
                 let avgH = flockAvgH;
                 if (Math.abs(avgH - otherH) > 180) {
                   if (otherH < avgH) otherH += 360;
@@ -399,7 +420,7 @@ export class BoidSim {
     }
   }
 
-  private buildGrid(width: number, height: number, cell: number): void {
+  private buildGrid(width: number, height: number, cell: number, posX: Float32Array, posY: Float32Array): void {
     const invCell = 1 / cell;
     const pad = GRID_PADDING_CELLS;
     const originX = -pad * cell;
@@ -422,8 +443,6 @@ export class BoidSim {
     this.gRows = rows;
 
     const n = this.count;
-    const posX = this.posX;
-    const posY = this.posY;
     const cellOfBoid = this.cellOfBoid;
     const cellCount = this.cellCount;
     cellCount.fill(0);
@@ -450,36 +469,6 @@ export class BoidSim {
     for (let i = 0; i < n; i++) {
       const cidx = cellOfBoid[i];
       sortedIdx[cursor[cidx]++] = i;
-    }
-  }
-
-  /**
-   * Iterate boid indices in the cell block around (bx, by) covering `range`.
-   * Uses the grid as built by the last `step()` — for the debug overlay only.
-   */
-  queryNeighbors(bx: number, by: number, range: number, cb: (j: number) => void): void {
-    if (this.gNumCells === 0) return;
-    const invCell = this.gInvCell;
-    const cols = this.gCols;
-    const rows = this.gRows;
-    const cellRadius = Math.max(1, Math.ceil(range * invCell));
-    const cx = clampInt(Math.floor((bx - this.gOriginX) * invCell), 0, cols - 1);
-    const cy = clampInt(Math.floor((by - this.gOriginY) * invCell), 0, rows - 1);
-    const xlo = Math.max(0, cx - cellRadius);
-    const xhi = Math.min(cols - 1, cx + cellRadius);
-    const ylo = Math.max(0, cy - cellRadius);
-    const yhi = Math.min(rows - 1, cy + cellRadius);
-    const cellStart = this.cellStart;
-    const sortedIdx = this.sortedIdx;
-    for (let gy = ylo; gy <= yhi; gy++) {
-      const rowBase = gy * cols;
-      for (let gx = xlo; gx <= xhi; gx++) {
-        const cidx = rowBase + gx;
-        const end = cellStart[cidx + 1];
-        for (let s = cellStart[cidx]; s < end; s++) {
-          cb(sortedIdx[s]);
-        }
-      }
     }
   }
 }
