@@ -1,1 +1,5 @@
-<svg version="1.1" viewBox="0.0 0.0 512.0 512.0" fill="none" stroke="none" stroke-linecap="square" stroke-miterlimit="10" xmlns:xlink="http://www.w3.org/1999/xlink" xmlns="http://www.w3.org/2000/svg"><clipPath id="p.0"><path d="m0 0l512.0 0l0 512.0l-512.0 0l0 -512.0z" clip-rule="nonzero"/></clipPath><g clip-path="url(#p.0)"><path fill="#ffffff" d="m0 0l512.0 0l0 512.0l-512.0 0z" fill-rule="evenodd"/><path fill="#ff0000" d="m-2.855643 512.0l0 -512.0l514.86615 512.0z" fill-rule="evenodd"/><path fill="#000000" d="m95.144356 256.0l0 0c0 -89.15703 71.38062 -161.43307 159.43307 -161.43307l0 0c42.28427 0 82.8367 17.008072 112.736206 47.282646c29.899506 30.274582 46.69687 71.33571 46.69687 114.15042l0 0c0 89.15701 -71.380615 161.43307 -159.43307 161.43307l0 0c-88.052444 0 -159.43307 -72.27606 -159.43307 -161.43307z" fill-rule="evenodd"/></g></svg>
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1254 1254" role="img" aria-label="H.">
+  <rect width="1254" height="1254" fill="#faf8f5"/>
+  <path fill="#111" d="M259 263h196v258h220V263h197v699H675V672H455v290H259z"/>
+  <circle cx="999" cy="884" r="82" fill="#f10d16"/>
+</svg>
