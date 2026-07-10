@@ -65,7 +65,7 @@ const projects = [
 
 const skills = [
   {
-    label: "Topics",
+    label: "Subjects",
     items: ["Real-time graphics", "Physics simulation", "Computer vision", "Machine learning"],
   },
   {
@@ -123,8 +123,8 @@ const skills = [
         <p class="hero-lede">Real-time simulation, rendering, and machine&nbsp;learning.</p>
         <p class="hero-body">
           At McGill's Computer Graphics Lab I researched acceleration structures for collision detection on deformable
-          3D meshes. Before that I built computer vision systems for an autonomous underwater robot. 
-          In between, I made a ray tracer, a Mini-C compiler, a Tetris clone, and a few more projects just for fun.
+          3D meshes. Before that I built computer vision systems for an autonomous underwater robot. In between, I made
+          a ray tracer, a Mini-C compiler, a Tetris clone, and a few more projects just for fun.
         </p>
         <div class="hero-actions">
           <a class="action mono" href="mailto:henrylefeb@gmail.com">Email</a>
@@ -215,36 +215,46 @@ const skills = [
 
     <style>
       main {
-        padding-top: 1.5rem;
-        padding-bottom: 3rem;
+        width: min(calc(100% - (clamp(1.25rem, 4vw, 4.5rem) * 2)), 1440px);
+        max-width: none;
+        padding: clamp(1.25rem, 2.5vw, 2.5rem) 0 clamp(3rem, 6vw, 6rem);
         display: flex;
         flex-direction: column;
-        gap: 1.5rem;
+        gap: clamp(1rem, 2vw, 1.5rem);
       }
 
       .panel {
-        padding: 2.5rem;
+        padding: clamp(1.5rem, 3.5vw, 3.5rem);
+        background: var(--panel-bg);
+        -webkit-backdrop-filter: blur(3px);
+        backdrop-filter: blur(3px);
+      }
+
+      .hero {
+        padding-block: clamp(3rem, 7vw, 7rem);
       }
 
       /* ---------- Hero ---------- */
 
       .hero-kicker {
         color: var(--accent);
-        margin: 0 0 1.25rem;
+        margin: 0 0 clamp(1.5rem, 3vw, 2.5rem);
+        font-weight: 600;
+        letter-spacing: 0.12em;
       }
 
       .hero-lede {
-        font-size: clamp(1.5rem, 3.2vw, 2.3rem);
+        font-size: clamp(2.6rem, 5.8vw, 6rem);
         font-weight: 500;
-        line-height: 1.25;
-        letter-spacing: -0.01em;
+        line-height: 0.96;
+        letter-spacing: -0.055em;
         color: var(--text-heading);
-        max-width: 24ch;
-        margin: 0 0 1.25rem;
+        max-width: 15ch;
+        margin: 0 0 clamp(2rem, 4vw, 3.5rem);
       }
 
       .hero-body {
-        font-size: 1.05rem;
+        font-size: clamp(1rem, 1.35vw, 1.2rem);
         line-height: 1.65;
         max-width: 62ch;
         margin: 0 0 2rem;
@@ -260,9 +270,12 @@ const skills = [
         display: inline-flex;
         align-items: center;
         gap: 0.4rem;
-        padding: 0.7rem 1.1rem;
-        border: 1px solid var(--panel-border);
+        min-height: 46px;
+        padding: 0.75rem 1rem;
+        border: 1px solid var(--text-heading);
         color: var(--text-heading);
+        font-weight: 600;
+        letter-spacing: 0.08em;
         transition:
           background-color 0.15s ease,
           border-color 0.15s ease,
@@ -281,9 +294,9 @@ const skills = [
       }
 
       .action-primary:hover {
-        background: var(--accent-dark);
-        border-color: var(--accent-dark);
-        color: #fff;
+        background: transparent;
+        border-color: var(--accent);
+        color: var(--accent);
       }
 
       .action [data-icon] {
@@ -297,14 +310,15 @@ const skills = [
         align-items: baseline;
         justify-content: space-between;
         gap: 1rem;
-        border-bottom: 2px solid var(--text-heading);
-        padding-bottom: 0.75rem;
-        margin-bottom: 2rem;
+        border-top: 1px solid var(--text-heading);
+        border-bottom: 1px solid var(--hairline);
+        padding-block: 0.8rem;
+        margin-bottom: clamp(2rem, 4vw, 3.5rem);
       }
 
       .section-head h2 {
-        font-size: 1.5rem;
-        font-weight: 700;
+        font-size: 1.15rem;
+        font-weight: 600;
         letter-spacing: -0.01em;
         margin: 0;
       }
@@ -325,7 +339,7 @@ const skills = [
       .project-grid {
         display: grid;
         grid-template-columns: repeat(2, 1fr);
-        gap: 3rem 2.5rem;
+        gap: clamp(3rem, 5vw, 5rem) clamp(2rem, 4vw, 4rem);
       }
 
       .project-media {
@@ -492,10 +506,6 @@ const skills = [
       }
 
       @media (max-width: 720px) {
-        .panel {
-          padding: 1.5rem 1.25rem;
-        }
-
         main {
           gap: 1rem;
         }

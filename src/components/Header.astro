@@ -29,22 +29,21 @@ import HeaderLink from "./HeaderLink.astro";
 
     .header-inner {
       box-sizing: border-box;
-      width: 100%;
-      max-width: 1200px;
-      margin: 0 auto;
-      padding: 0 2rem;
+      width: min(calc(100% - (clamp(1.25rem, 4vw, 4.5rem) * 2)), 1440px);
+      margin-inline: auto;
     }
 
     .logo-row {
       display: flex;
       align-items: center;
       justify-content: space-between;
-      padding: 0.5em 0 0.15em;
+      padding: clamp(0.75rem, 1.5vw, 1.25rem) 0 0.35rem;
     }
 
     h1 {
-      font-size: min(9vw, 128px);
-      letter-spacing: -0.02em;
+      font-size: min(9vw, 8rem);
+      letter-spacing: -0.045em;
+      line-height: 0.95;
       margin: 0;
     }
 
@@ -63,7 +62,7 @@ import HeaderLink from "./HeaderLink.astro";
 
     .header-divider {
       border: none;
-      border-top: 2px solid var(--text-heading);
+      border-top: 1px solid var(--text-heading);
       margin: 0;
       width: 100%;
     }
@@ -73,7 +72,7 @@ import HeaderLink from "./HeaderLink.astro";
       align-items: baseline;
       justify-content: space-between;
       gap: 1em;
-      padding: 0.8em 0 0.5em;
+      padding: 0.8rem 0;
     }
 
     nav {
@@ -89,10 +88,6 @@ import HeaderLink from "./HeaderLink.astro";
     }
 
     @media (max-width: 720px) {
-      .header-inner {
-        padding: 0 1em;
-      }
-
       h1 {
         font-size: clamp(1.75rem, 10vw, 2.5rem);
       }
